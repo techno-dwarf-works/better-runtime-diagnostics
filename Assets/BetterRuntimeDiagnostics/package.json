@@ -1,0 +1,29 @@
+{
+  "name": "com.uurha.betterruntimediagnostics",
+  "displayName": "Better Runtime Diagnostics",
+  "version": "0.0.1",
+  "unity": "2018.3",
+  "description": " ",
+  "dependencies": {
+  },
+  "author": {
+    "name": "Arcueid D'athemon",
+    "url": "https://github.com/uurha"
+  },
+  "changelogUrl": "https://github.com/uurha/BetterRuntimeDiagnostics",
+  "documentationUrl": "https://github.com/uurha/BetterRuntimeDiagnostics/tree/main#readme",
+  "license": "MIT",
+  "licensesUrl":"https://github.com/uurha/BetterRuntimeDiagnostics/blob/main/LICENSE",
+  "keywords": [
+    "Debug",
+    "Diagnostics",
+    "GL"
+  ],
+  "samples": [
+    {
+      "displayName": "Default samples",
+      "description": "Contains test samples",
+      "path": "Samples~/TestSamples"
+    }
+  ]
+}

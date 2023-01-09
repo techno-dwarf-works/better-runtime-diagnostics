@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Better.Diagnostics.Runtime
+namespace Better.Diagnostics.Runtime.Interfaces
 {
     public interface IDiagnosticsRenderer
     {

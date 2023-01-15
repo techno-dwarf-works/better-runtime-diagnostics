@@ -23,7 +23,7 @@ namespace Better.Diagnostics.Runtime.Models
                 Debug.LogError("Please Assign a material on the inspector");
                 return;
             }
-
+            
             GL.PushMatrix();
             GL.LoadProjectionMatrix(camera.projectionMatrix);
             GL.modelview = camera.worldToCameraMatrix;

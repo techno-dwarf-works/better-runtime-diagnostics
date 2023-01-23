@@ -4,10 +4,15 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.Models
 {
-    public abstract class BaseWrapper : IRendererWrapper
+    public abstract class BaseWrapper<T> : IRendererWrapper
     {
         private protected List<Line> _lines;
-        private protected abstract Matrix4x4 Matrix();
+        private protected readonly ITrackableData<T> _data;
+
+        protected BaseWrapper(ITrackableData<T> data)
+        {
+            _data = data;
+        }
 
         public void Initialize()
         {

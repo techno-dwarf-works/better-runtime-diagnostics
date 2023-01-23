@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Better.DataStructures.Ranges;
 using Better.Diagnostics.Runtime.Models;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace Better.Diagnostics.Runtime
         // y = yo + r * cos(phi) * sin(theta)
         // z = zo + r * sin(phi)
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<Line> PrepareHorizontalCircle()
         {
             var lines = new List<Line>();
@@ -38,6 +40,7 @@ namespace Better.Diagnostics.Runtime
             return lines;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<Line> PrepareTopCap()
         {
             var lines = new List<Line>();
@@ -57,6 +60,7 @@ namespace Better.Diagnostics.Runtime
             return lines;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<Line> PrepareBottomCap()
         {
             var lines = new List<Line>();
@@ -77,6 +81,7 @@ namespace Better.Diagnostics.Runtime
             return lines;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Spherical(float phi, float theta)
         {
             var sinTheta = Mathf.Sin(theta);
@@ -86,6 +91,7 @@ namespace Better.Diagnostics.Runtime
             return new Vector3(sinTheta * cosPhi, cosTheta, -sinTheta * sinPhi);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 CalculatePoint(float phi, float theta)
         {
             var cosPhi = Mathf.Cos(phi);

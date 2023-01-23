@@ -31,12 +31,12 @@ namespace Better.Diagnostics.Runtime.Models
         {
             return new Line(Vector3.Scale(line._start, f), Vector3.Scale(line._end, f), line._color);
         }
-        
+
         public static Line operator +(Line line, Vector3 f)
         {
             return new Line(line._start + f, line._end + f, line._color);
         }
-        
+
         public static Line operator -(Line line, Vector3 f)
         {
             return new Line(line._start - f, line._end - f, line._color);
@@ -57,6 +57,25 @@ namespace Better.Diagnostics.Runtime.Models
             var start = new Vector3(_start.x * x, _start.y * y, _start.z * z);
             var end = new Vector3(_end.x * x, _end.y * y, _end.z * z);
             return new Line(start, end);
+        }
+        
+        public Line MoveEndBy(float addition)
+        {
+            return new Line(_start, _end * addition, _color);
+        }
+
+        public Line MoveStartBy(float addition)
+        {
+            return new Line(_start * addition, _end, _color);
+        }
+
+        public Line MoveEnd(Vector3 addition)
+        {
+            return new Line(_start, _end + addition, _color);
+        }
+        public Line MoveStart(Vector3 addition)
+        {
+            return new Line(_start + addition, _end, _color);
         }
 
         public void Draw()

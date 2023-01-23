@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using Better.Diagnostics.Runtime.Interfaces;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.Models
 {
-    public abstract class AxisWrapper : BaseWrapper
+    public class AxisWrapper : BaseWrapper<float>
     {
+        public AxisWrapper(ITrackableData<float> data) : base(data)
+        {
+        }
+        
         private protected override List<Line> GenerateBaseLines()
         {
             var points = new List<Line>(3);
@@ -20,7 +25,7 @@ namespace Better.Diagnostics.Runtime.Models
         public override IEnumerable<Line> GetLines()
         {
             var lines = new Line[_lines.Count];
-            var matrix4X4 = Matrix();
+            var matrix4X4 = _data.Matrix4X4;
             for (int i = 0; i < _lines.Count; i++)
             {
                 lines[i] = _lines[i] * matrix4X4;

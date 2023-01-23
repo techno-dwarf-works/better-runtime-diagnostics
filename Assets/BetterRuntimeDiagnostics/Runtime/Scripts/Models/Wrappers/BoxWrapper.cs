@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Better.Diagnostics.Runtime.Interfaces;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.Models
 {
-    public abstract class BoxWrapper : BaseWrapper
+    public class BoxWrapper : BaseWrapper<Vector3>
     {
-        private protected abstract Vector3 Size();
-
         private protected override List<Line> GenerateBaseLines()
         {
             var points = new List<Line>(12);
@@ -45,14 +44,20 @@ namespace Better.Diagnostics.Runtime.Models
         public override IEnumerable<Line> GetLines()
         {
             var lines = new Line[_lines.Count];
-            var matrix4X4 = Matrix();
-            var size = Size();
+            var trackableData = _data;
+            var matrix4X4 = trackableData.Matrix4X4;
+            var size = trackableData.Size;
+            
             for (int i = 0; i < _lines.Count; i++)
             {
                 lines[i] = _lines[i] * (size / 2f) * matrix4X4;
             }
 
             return lines;
+        }
+
+        public BoxWrapper(ITrackableData<Vector3> data) : base(data)
+        {
         }
     }
 }

@@ -5,15 +5,15 @@ namespace Better.Diagnostics.Runtime.Models
 {
     public class ColliderRenderer : BaseRenderer
     {
-        public ColliderRenderer(Material material, BoxCollider collider) : base(material, new BoxWrapper(new BoxColliderData(collider)))
+        public ColliderRenderer(BoxCollider collider) : base(new BoxWrapper(new BoxColliderData(collider)))
         {
         }
 
-        public ColliderRenderer(Material material, SphereCollider collider) : base(material, new SphereWrapper(new SphereColliderData(collider)))
+        public ColliderRenderer(SphereCollider collider) : base(new SphereWrapper(new SphereColliderData(collider)))
         {
         }
         
-        public ColliderRenderer(Material material, CapsuleCollider collider) : base(material, new CapsuleWrapper(new CapsuleColliderData(collider)))
+        public ColliderRenderer(CapsuleCollider collider) : base(new CapsuleWrapper(new CapsuleColliderData(collider)))
         {
         }
     }

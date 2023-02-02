@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Better.Diagnostics.Runtime.Calculations;
 using Better.Diagnostics.Runtime.Interfaces;
 using UnityEngine;
 
@@ -12,9 +13,16 @@ namespace Better.Diagnostics.Runtime.Models
         private protected SphereCalculator _calculator;
         private readonly ITrackableData<float> _data;
 
+        public bool IsMarkedForRemove => _data.IsMarkedForRemove;
+
         public CylinderWrapper(ITrackableData<float> data)
         {
             _data = data;
+        }
+
+        public void MarkForRemove()
+        {
+            _data.MarkForRemove();
         }
 
         public virtual void Initialize()

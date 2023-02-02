@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using Better.Diagnostics.Runtime.Calculations;
 using Better.Diagnostics.Runtime.Interfaces;
+using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.Models
 {
@@ -9,7 +11,7 @@ namespace Better.Diagnostics.Runtime.Models
         {
         }
 
-        private protected override List<Line> GenerateBaseLines()
+        private protected override List<Line> GenerateBaseLines(Color color)
         {
             var sphereCalculator = new SphereCalculator();
             var lines = sphereCalculator.PrepareHorizontalCircle();
@@ -23,11 +25,11 @@ namespace Better.Diagnostics.Runtime.Models
 
                 var start = SphereCalculator.Spherical(0, previousStep);
                 var end = SphereCalculator.Spherical(0, theta);
-                lines.Add(new Line(start, end));
+                lines.Add(new Line(start, end, color));
 
                 var start1 = SphereCalculator.Spherical(phiRangeMin, previousStep);
                 var end1 = SphereCalculator.Spherical(phiRangeMin, theta);
-                lines.Add(new Line(start1, end1));
+                lines.Add(new Line(start1, end1, color));
             }
 
             return lines;
@@ -36,12 +38,13 @@ namespace Better.Diagnostics.Runtime.Models
         public override IEnumerable<Line> GetLines()
         {
             var r = _data.Size;
-            var lines = new Line[_lines.Count];
+            var baseLines = GetBaseLines();
+            var lines = new Line[baseLines.Count];
             var matrix4X4 = _data.Matrix4X4;
 
-            for (var i = 0; i < _lines.Count; i++)
+            for (var i = 0; i < baseLines.Count; i++)
             {
-                lines[i] = _lines[i] * r * matrix4X4;
+                lines[i] = baseLines[i] * r * matrix4X4;
             }
 
             return lines;

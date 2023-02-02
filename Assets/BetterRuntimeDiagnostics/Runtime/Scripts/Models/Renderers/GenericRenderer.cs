@@ -1,12 +1,10 @@
-﻿using System;
-using Better.Diagnostics.Runtime.Interfaces;
-using UnityEngine;
+﻿using Better.Diagnostics.Runtime.Interfaces;
 
 namespace Better.Diagnostics.Runtime.Models
 {
     public class GenericRenderer : BaseRenderer
     {
-        public GenericRenderer(Material material, IRendererWrapper wrapper) : base(material, wrapper)
+        public GenericRenderer(IRendererWrapper wrapper) : base(wrapper)
         {
         }
     }

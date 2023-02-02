@@ -8,12 +8,17 @@ namespace Better.Diagnostics.Runtime.Models
     {
         private IList<Line> _baseCircle;
         private IList<Line> _lines;
+        private static readonly Quaternion Rotation = Quaternion.Euler(-90, 0, 0);
+
+        public abstract bool IsMarkedForRemove { get; }
 
         public void Initialize()
         {
             _baseCircle = FillUpBaseLines();
             _lines = FillUpSideLines();
         }
+
+        public abstract void MarkForRemove();
 
         protected abstract IList<Line> FillUpSideLines();
 
@@ -31,7 +36,9 @@ namespace Better.Diagnostics.Runtime.Models
             var list = new Line[count];
             var h = GetHeight();
             var baseSize = GetBaseSize();
-            var matrix4X4 = GetMatrix();
+            var m = GetMatrix();
+            var matrix4X4 = Matrix4x4.TRS(m.GetPosition(), m.rotation * Rotation, m.lossyScale);
+            
 
             var height = Vector3.down * h;
             var t = 0;

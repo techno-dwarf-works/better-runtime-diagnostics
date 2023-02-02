@@ -6,28 +6,33 @@ namespace Better.Diagnostics.Runtime.Models
 {
     public abstract class BaseRenderer : IDiagnosticsRenderer
     {
-        private protected readonly Material _mat;
         private protected readonly IRendererWrapper _wrapper;
 
-        protected BaseRenderer(Material material, IRendererWrapper wrapper)
+        public bool IsMarkedForRemove => _wrapper.IsMarkedForRemove;
+
+        protected BaseRenderer(IRendererWrapper wrapper)
         {
-            _mat = material;
             _wrapper = wrapper;
             _wrapper.Initialize();
         }
 
-        public void Draw(Camera camera)
+        public void MarkForRemove()
         {
-            if (!_mat)
+            _wrapper.MarkForRemove();
+        }
+
+        public void Draw(Material material, Camera camera)
+        {
+            if (!material)
             {
                 Debug.LogError("Please Assign a material on the inspector");
                 return;
             }
-            
+
             GL.PushMatrix();
             GL.LoadProjectionMatrix(camera.projectionMatrix);
             GL.modelview = camera.worldToCameraMatrix;
-            _mat.SetPass(0);
+            material.SetPass(0);
 
             GL.Begin(GL.LINES);
 
@@ -42,10 +47,11 @@ namespace Better.Diagnostics.Runtime.Models
             {
                 Debug.LogException(e);
             }
-
-            GL.End();
-
-            GL.PopMatrix();
+            finally
+            {
+                GL.End();
+                GL.PopMatrix();
+            }
         }
     }
 }

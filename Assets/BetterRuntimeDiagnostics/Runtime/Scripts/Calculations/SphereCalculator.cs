@@ -4,7 +4,7 @@ using Better.DataStructures.Ranges;
 using Better.Diagnostics.Runtime.Models;
 using UnityEngine;
 
-namespace Better.Diagnostics.Runtime
+namespace Better.Diagnostics.Runtime.Calculations
 {
     public struct SphereCalculator
     {

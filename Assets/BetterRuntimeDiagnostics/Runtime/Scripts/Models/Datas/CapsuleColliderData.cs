@@ -8,7 +8,8 @@ namespace Better.Diagnostics.Runtime.Models.Datas
     public class CapsuleColliderData : ITrackableData<float>
     {
         private readonly CapsuleCollider _collider;
-
+        
+        private bool _isNeedRemove;
 
         private static readonly Quaternion[] DirectionRotation = new Quaternion[]
         {
@@ -24,6 +25,10 @@ namespace Better.Diagnostics.Runtime.Models.Datas
 
         public float Size => _collider.radius;
         public float OptionalSize => _collider.height;
+        public bool IsMarkedForRemove => _isNeedRemove || _collider.IsNullOrDestroyed();
+        
+        
+        public Color Color => _collider.isTrigger ? Color.yellow : Color.green;
 
         public Matrix4x4 Matrix4X4
         {
@@ -34,6 +39,11 @@ namespace Better.Diagnostics.Runtime.Models.Datas
                     transform.localRotation * DirectionRotation[_collider.direction],
                     transform.localScale);
             }
+        }
+
+        public void MarkForRemove()
+        {
+            _isNeedRemove = true;
         }
     }
 }

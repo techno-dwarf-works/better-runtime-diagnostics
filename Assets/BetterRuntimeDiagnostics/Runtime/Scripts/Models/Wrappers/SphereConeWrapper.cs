@@ -1,17 +1,25 @@
 ﻿using System.Collections.Generic;
+using Better.Diagnostics.Runtime.Calculations;
 using Better.Diagnostics.Runtime.Interfaces;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.Models
 {
-    public class ConeWrapper : PrismaWrapper
+    public class SphereConeWrapper : PrismaWrapper
     {
         private SphereCalculator _calculator;
         private readonly ITrackableData<float> _data;
 
-        public ConeWrapper(ITrackableData<float> data)
+        public SphereConeWrapper(ITrackableData<float> data)
         {
             _data = data;
+        }
+
+        public override bool IsMarkedForRemove => _data.IsMarkedForRemove;
+
+        public override void MarkForRemove()
+        {
+            _data.MarkForRemove();
         }
 
         protected override IList<Line> FillUpSideLines()

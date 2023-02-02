@@ -2,8 +2,8 @@
 
 namespace Better.Diagnostics.Runtime.Interfaces
 {
-    public interface IDiagnosticsRenderer
+    public interface IDiagnosticsRenderer : IRemovable
     {
-        public void Draw(Camera camera);
+        public void Draw(Material material, Camera camera);
     }
 }

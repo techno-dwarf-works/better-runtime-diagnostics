@@ -1,6 +1,6 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
-using Better.Diagnostics.Runtime.Interfaces;
+using Better.Diagnostics.Runtime.Framing;
 using Better.Diagnostics.Runtime.Models;
 using Better.Diagnostics.Runtime.Models.Datas;
 using UnityEngine;
@@ -9,27 +9,23 @@ namespace Better.Diagnostics.Runtime
 {
     public class TestGL : MonoBehaviour
     {
-        [SerializeField] private Camera cam;
-        [SerializeField] private DefaultTrackable defaultTrackable;
-        private Material _material;
-        private List<IDiagnosticsRenderer> _renderers = new List<IDiagnosticsRenderer>();
+        [SerializeField] private DefaultTrackable sphereConeWrapper;
+        [SerializeField] private DefaultTrackable squareConeWrapper;
 
         private void Start()
         {
-            _material = new Material(Shader.Find("Hidden/Diagnostics/Unlit"));
-            _renderers.AddRange(FindObjectsOfType<BoxCollider>().Select(x => new ColliderRenderer(_material, x)));
-            _renderers.AddRange(FindObjectsOfType<SphereCollider>().Select(x => new ColliderRenderer(_material, x)));
-            _renderers.AddRange(FindObjectsOfType<CapsuleCollider>().Select(x => new ColliderRenderer(_material, x)));
-            _renderers.AddRange(FindObjectsOfType<Transform>().Select(x => new GenericRenderer(_material, new AxisWrapper(new TransformData(x)))));
-            _renderers.Add(new GenericRenderer(_material, new ConeWrapper(defaultTrackable)));
+            FrameListener.AddRangeRenderer(FindObjectsOfType<BoxCollider>().Select(x => new ColliderRenderer(x)));
+            FrameListener.AddRangeRenderer(FindObjectsOfType<SphereCollider>().Select(x => new ColliderRenderer(x)));
+            FrameListener.AddRangeRenderer(FindObjectsOfType<CapsuleCollider>().Select(x => new ColliderRenderer(x)));
+            //GLDrawer.AddRangeRenderer(FindObjectsOfType<Transform>().Select(x => new GenericRenderer(new AxisWrapper(new TransformData(x)))));
+            FrameListener.AddRenderer(new GenericRenderer(new SphereConeWrapper(sphereConeWrapper)));
+            FrameListener.AddRenderer(new GenericRenderer(new SquareConeWrapper(squareConeWrapper)));
         }
 
-        private void OnPostRender()
+        private void Update()
         {
-            foreach (var diagnosticsRenderer in _renderers)
-            {
-                diagnosticsRenderer.Draw(cam);
-            }
+            var transform1 = transform;
+            Diagnostics.DrawRay(new Ray(transform1.position, transform1.forward), Color.cyan);
         }
     }
 }

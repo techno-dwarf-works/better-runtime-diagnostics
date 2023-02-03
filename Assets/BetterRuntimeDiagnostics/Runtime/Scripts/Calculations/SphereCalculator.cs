@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Better.DataStructures.Ranges;
-using Better.Diagnostics.Runtime.Models;
+using Better.Diagnostics.Runtime.DrawingModule;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.Calculations

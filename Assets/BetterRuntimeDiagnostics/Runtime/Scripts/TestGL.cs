@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using Better.Diagnostics.Runtime.Framing;
-using Better.Diagnostics.Runtime.Models;
-using Better.Diagnostics.Runtime.Models.Datas;
+using Better.Diagnostics.Runtime.DrawingModule;
+using Better.Diagnostics.Runtime.DrawingModule.Framing;
+using Better.Diagnostics.Runtime.DrawingModule.TrackableData;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime

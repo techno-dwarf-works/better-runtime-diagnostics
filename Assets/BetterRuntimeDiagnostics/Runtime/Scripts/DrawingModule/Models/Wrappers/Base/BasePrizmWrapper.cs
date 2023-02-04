@@ -19,6 +19,7 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         }
 
         public abstract void MarkForRemove();
+        public abstract void OnRemoved();
 
         protected abstract IList<Line> FillUpSideLines();
 

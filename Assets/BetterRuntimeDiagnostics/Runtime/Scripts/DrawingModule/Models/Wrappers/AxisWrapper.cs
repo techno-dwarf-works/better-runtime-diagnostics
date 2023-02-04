@@ -6,10 +6,12 @@ namespace Better.Diagnostics.Runtime.DrawingModule
 {
     public class AxisWrapper : BaseWrapper<float>
     {
-        public AxisWrapper(ITrackableData<float> data) : base(data)
+        public override void OnRemoved()
         {
+            RemovablePool.Instance.Add(this);
+            _data.OnRemoved();
         }
-        
+
         private protected override List<Line> GenerateBaseLines(Color color)
         {
             var points = new List<Line>(3);

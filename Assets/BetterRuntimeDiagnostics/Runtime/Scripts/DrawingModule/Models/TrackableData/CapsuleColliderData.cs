@@ -5,9 +5,9 @@ using UnityEngine;
 namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
 {
     [Serializable]
-    public class CapsuleColliderData : ITrackableData<float>
+    public class CapsuleColliderData : ITrackableData<float>, ISettable<CapsuleCollider, ITrackableData<float>>
     {
-        private readonly CapsuleCollider _collider;
+        private CapsuleCollider _collider;
         
         private bool _isNeedRemove;
 
@@ -18,16 +18,16 @@ namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
             Quaternion.LookRotation(Vector3.up, Vector3.forward)
         };
 
-        public CapsuleColliderData(CapsuleCollider collider)
-        {
-            _collider = collider;
-        }
-
         public float Size => _collider.radius;
         public float OptionalSize => _collider.height;
         public bool IsMarkedForRemove => _isNeedRemove || _collider.IsNullOrDestroyed();
         
         
+        public ITrackableData<float> Set(CapsuleCollider collider)
+        {
+            _collider = collider;
+            return this;
+        }
         public Color Color => _collider.isTrigger ? Color.yellow : Color.green;
 
         public Matrix4x4 Matrix4X4
@@ -44,6 +44,11 @@ namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
         public void MarkForRemove()
         {
             _isNeedRemove = true;
+        }
+        
+        public void OnRemoved()
+        {
+            RemovablePool.Instance.Add(this);
         }
     }
 }

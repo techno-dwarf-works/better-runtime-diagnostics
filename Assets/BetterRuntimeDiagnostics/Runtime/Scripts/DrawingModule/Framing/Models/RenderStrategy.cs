@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Better.Diagnostics.Runtime.DrawingModule.Interfaces;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Better.Diagnostics.Runtime.DrawingModule.Framing.Models
 {
@@ -8,6 +11,7 @@ namespace Better.Diagnostics.Runtime.DrawingModule.Framing.Models
     {
         private List<IDiagnosticsRenderer> _renderers;
         private Material _material;
+        private readonly Func<IDiagnosticsRenderer, bool> _predicate = x => x.IsMarkedForRemove;
 
         public virtual void Initialize()
         {
@@ -17,7 +21,12 @@ namespace Better.Diagnostics.Runtime.DrawingModule.Framing.Models
 
         private protected void RemoveMarked()
         {
-            _renderers.RemoveAll(x => x.IsMarkedForRemove);
+            var list = new List<IDiagnosticsRenderer>(_renderers.Where(_predicate));
+            foreach (var diagnosticsRenderer in list)
+            {
+                diagnosticsRenderer.OnRemoved();
+                _renderers.Remove(diagnosticsRenderer);
+            }
         }
 
         private protected void OnRender(Camera camera)

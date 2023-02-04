@@ -3,15 +3,10 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
 {
-    public class SphereColliderData : ITrackableData<float>
+    public class SphereColliderData : ITrackableData<float>, ISettable<SphereCollider, ITrackableData<float>>
     {
-        private readonly SphereCollider _collider;
+        private SphereCollider _collider;
         private bool _isNeedRemove;
-
-        public SphereColliderData(SphereCollider collider)
-        {
-            _collider = collider;
-        }
 
         public float Size => _collider.radius;
         public float OptionalSize { get; }
@@ -25,10 +20,21 @@ namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
                 return Matrix4x4.TRS(transform.localPosition + _collider.center, transform.localRotation, transform.localScale);
             }
         }
+        
+        public ITrackableData<float> Set(SphereCollider collider)
+        {
+            _collider = collider;
+            return this;
+        }
 
         public void MarkForRemove()
         {
             _isNeedRemove = true;
+        }
+        
+        public void OnRemoved()
+        {
+            RemovablePool.Instance.Add(this);
         }
     }
 }

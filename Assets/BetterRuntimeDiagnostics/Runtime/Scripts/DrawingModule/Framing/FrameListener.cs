@@ -39,10 +39,10 @@ namespace Better.Diagnostics.Runtime.DrawingModule.Framing
         {
             _renderStrategy?.AddRenderer(diagnosticsRenderer);
         }
-        
+
         public static void AddWrapper(IRendererWrapper wrapper)
         {
-            _renderStrategy?.AddRenderer(new GenericRenderer(wrapper));
+            _renderStrategy?.AddRenderer(RemovablePool.Instance.Get<GenericRenderer>().Set(wrapper));
         }
 
         public static void AddRangeRenderer(IEnumerable<IDiagnosticsRenderer> diagnosticsRenderer)

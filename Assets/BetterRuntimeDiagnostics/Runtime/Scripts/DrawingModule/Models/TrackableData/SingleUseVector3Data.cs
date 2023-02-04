@@ -2,7 +2,7 @@
 
 namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
 {
-    public class SingleUseFloatData : SingleUseData<float>
+    public class SingleUseVector3Data : SingleUseData<Vector3>
     {
         public override void OnRemoved()
         {

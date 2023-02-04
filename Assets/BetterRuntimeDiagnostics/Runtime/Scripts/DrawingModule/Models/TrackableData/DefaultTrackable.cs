@@ -25,5 +25,10 @@ namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
         {
             isNeedRemove = true;
         }
+        
+        public void OnRemoved()
+        {
+            RemovablePool.Instance.Add(this);
+        }
     }
 }

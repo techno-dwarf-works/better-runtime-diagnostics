@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Better.Diagnostics.Runtime.DrawingModule;
 using Better.Diagnostics.Runtime.DrawingModule.Framing;
+using Better.Diagnostics.Runtime.DrawingModule.Interfaces;
 using Better.Diagnostics.Runtime.DrawingModule.TrackableData;
 using UnityEngine;
 
@@ -14,12 +15,25 @@ namespace Better.Diagnostics.Runtime
 
         private void Start()
         {
-            FrameListener.AddRangeRenderer(FindObjectsOfType<BoxCollider>().Select(x => new ColliderRenderer(x)));
-            FrameListener.AddRangeRenderer(FindObjectsOfType<SphereCollider>().Select(x => new ColliderRenderer(x)));
-            FrameListener.AddRangeRenderer(FindObjectsOfType<CapsuleCollider>().Select(x => new ColliderRenderer(x)));
-            //GLDrawer.AddRangeRenderer(FindObjectsOfType<Transform>().Select(x => new GenericRenderer(new AxisWrapper(new TransformData(x)))));
-            FrameListener.AddRenderer(new GenericRenderer(new SphereConeWrapper(sphereConeWrapper)));
-            FrameListener.AddRenderer(new GenericRenderer(new SquareConeWrapper(squareConeWrapper)));
+            var removablePool = RemovablePool.Instance;
+
+            FrameListener.AddRangeRenderer(FindObjectsOfType<BoxCollider>()
+                .Select(removablePool.Get<GenericRenderer, BoxWrapper, BoxColliderData, Vector3, BoxCollider>));
+            FrameListener.AddRangeRenderer(FindObjectsOfType<SphereCollider>()
+                .Select(removablePool.Get<GenericRenderer, SphereWrapper, SphereColliderData, float, SphereCollider>));
+            FrameListener.AddRangeRenderer(FindObjectsOfType<CapsuleCollider>()
+                .Select(removablePool.Get<GenericRenderer, CapsuleWrapper, CapsuleColliderData, float, CapsuleCollider>));
+            //FrameListener.AddRangeRenderer(FindObjectsOfType<Transform>().Select(removablePool.Get<GenericRenderer, AxisWrapper, TransformData, float, Transform>));
+
+            FrameListener.AddRenderer(removablePool.Get<GenericRenderer>()
+                .Set(removablePool.Get<SphereConeWrapper>().Set(sphereConeWrapper)));
+            FrameListener.AddRenderer(removablePool.Get<GenericRenderer>()
+                .Set(removablePool.Get<SphereConeWrapper>().Set(squareConeWrapper)));
+
+            var t = FindObjectOfType<BoxCollider>();
+
+            FrameListener.AddRenderer(removablePool.Get<GenericRenderer, SphereConeWrapper, DefaultTrackable>(sphereConeWrapper));
+            FrameListener.AddRenderer(removablePool.Get<GenericRenderer, SquareConeWrapper, DefaultTrackable>(squareConeWrapper));
         }
 
         private void Update()

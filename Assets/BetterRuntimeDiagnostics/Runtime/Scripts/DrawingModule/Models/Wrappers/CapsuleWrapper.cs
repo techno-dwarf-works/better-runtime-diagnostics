@@ -14,10 +14,6 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         private List<Line> _topCapLines;
         private List<Line> _botCapLines;
 
-        public CapsuleWrapper(ITrackableData<float> data) : base(data)
-        {
-        }
-
         public override void Initialize()
         {
             base.Initialize();

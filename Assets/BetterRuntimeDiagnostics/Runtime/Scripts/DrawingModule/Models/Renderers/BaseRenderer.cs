@@ -4,22 +4,25 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.DrawingModule
 {
-    public abstract class BaseRenderer : IDiagnosticsRenderer
+    public abstract class BaseRenderer : IDiagnosticsRenderer, ISettable<IRendererWrapper, IDiagnosticsRenderer>
     {
-        private protected readonly IRendererWrapper _wrapper;
+        private protected IRendererWrapper _wrapper;
 
         public bool IsMarkedForRemove => _wrapper.IsMarkedForRemove;
 
-        protected BaseRenderer(IRendererWrapper wrapper)
+        public IDiagnosticsRenderer Set(IRendererWrapper wrapper)
         {
             _wrapper = wrapper;
             _wrapper.Initialize();
+            return this;
         }
 
         public void MarkForRemove()
         {
             _wrapper.MarkForRemove();
         }
+
+        public abstract void OnRemoved();
 
         public void Draw(Material material, Camera camera)
         {

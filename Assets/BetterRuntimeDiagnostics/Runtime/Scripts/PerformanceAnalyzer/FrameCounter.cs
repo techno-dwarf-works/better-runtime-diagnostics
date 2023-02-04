@@ -6,6 +6,15 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
     {
         private double _lastUpdate;
         private double _lastFPS;
+        private readonly float _updateInterval;
+        private readonly GUIContent _content;
+
+        public FrameCounter(float updateInterval)
+        {
+            _updateInterval = updateInterval;
+            _content = new GUIContent();
+        }
+        
         public void Initialize()
         {
         }
@@ -13,12 +22,13 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
         public void OnGUI()
         {
             var sinceStartup = Time.realtimeSinceStartup;
-            if(_lastUpdate + 1f <= sinceStartup)
+            if(_lastUpdate + _updateInterval <= sinceStartup)
             {
-                _lastFPS = Time.renderedFrameCount / sinceStartup;
+                _lastFPS = Time.frameCount / sinceStartup;
                 _lastUpdate = sinceStartup;
+                _content.text = $"FPS {_lastFPS.ToString("F1")}";
             }
-            GUILayout.Label(new GUIContent($"FPS {_lastFPS.ToString("F1")}"));
+            GUILayout.Label(_content);
         }
 
         public void Deconstruct()

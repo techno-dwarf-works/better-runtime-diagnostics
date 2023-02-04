@@ -5,5 +5,9 @@
         public bool IsMarkedForRemove { get; }
 
         public void MarkForRemove();
+
+        public void OnRemoved();
     }
+
+    
 }

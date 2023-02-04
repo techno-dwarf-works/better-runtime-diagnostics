@@ -4,8 +4,10 @@ namespace Better.Diagnostics.Runtime.DrawingModule
 {
     public class GenericRenderer : BaseRenderer
     {
-        public GenericRenderer(IRendererWrapper wrapper) : base(wrapper)
+        public override void OnRemoved()
         {
+            RemovablePool.Instance.Add(this);
+            _wrapper.OnRemoved();
         }
     }
 }

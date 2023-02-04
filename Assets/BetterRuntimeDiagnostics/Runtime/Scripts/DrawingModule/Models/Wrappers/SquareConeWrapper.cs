@@ -4,15 +4,24 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.DrawingModule
 {
-    public class SquareConeWrapper : PrismaWrapper
+    public class SquareConeWrapper : PrismaWrapper, ISettable<ITrackableData<float>, IRendererWrapper>
     {
-        private readonly ITrackableData<float> _data;
+        private ITrackableData<float> _data;
+
         
         public override bool IsMarkedForRemove => _data.IsMarkedForRemove;
+        
 
-        public SquareConeWrapper(ITrackableData<float> data)
+        public IRendererWrapper Set(ITrackableData<float> data)
         {
             _data = data;
+            return this;
+        }
+        
+        public override void OnRemoved()
+        {
+            RemovablePool.Instance.Add(this);
+            _data.OnRemoved();
         }
 
         public override void MarkForRemove()

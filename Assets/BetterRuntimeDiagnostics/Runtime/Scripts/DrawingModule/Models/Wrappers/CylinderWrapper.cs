@@ -6,18 +6,25 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.DrawingModule
 {
-    public class CylinderWrapper : IRendererWrapper
+    public class CylinderWrapper : IRendererWrapper, ISettable<ITrackableData<float>, IRendererWrapper>
     {
         private Line[] _lines;
         private List<Line> _horizontalLines;
         private protected SphereCalculator _calculator;
-        private readonly ITrackableData<float> _data;
+        private ITrackableData<float> _data;
 
         public bool IsMarkedForRemove => _data.IsMarkedForRemove;
 
-        public CylinderWrapper(ITrackableData<float> data)
+        public void OnRemoved()
+        {
+            RemovablePool.Instance.Add(this);
+            _data.OnRemoved();
+        }
+
+        public IRendererWrapper Set(ITrackableData<float> data)
         {
             _data = data;
+            return this;
         }
 
         public void MarkForRemove()

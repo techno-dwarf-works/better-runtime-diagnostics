@@ -6,8 +6,10 @@ namespace Better.Diagnostics.Runtime.DrawingModule
 {
     public class GenericLineWrapper : BaseWrapper<float>
     {
-        public GenericLineWrapper(ITrackableData<float> data) : base(data)
+        public override void OnRemoved()
         {
+            RemovablePool.Instance.Add(this);
+            _data.OnRemoved();
         }
 
         private protected override List<Line> GenerateBaseLines(Color color)

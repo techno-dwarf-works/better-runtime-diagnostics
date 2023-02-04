@@ -56,8 +56,10 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             return lines;
         }
 
-        public BoxWrapper(ITrackableData<Vector3> data) : base(data)
+        public override void OnRemoved()
         {
+            RemovablePool.Instance.Add(this);
+            _data.OnRemoved();
         }
     }
 }

@@ -3,14 +3,15 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
 {
-    public class TransformData : ITrackableData<float>
+    public class TransformData : ITrackableData<float>, ISettable<Transform, ITrackableData<float>>
     {
-        private readonly Transform _transform;
+        private Transform _transform;
         private bool _isNeedRemove;
 
-        public TransformData(Transform transform)
+        public  ITrackableData<float> Set(Transform transform)
         {
             _transform = transform;
+            return this;
         }
 
         public float Size { get; }
@@ -22,6 +23,11 @@ namespace Better.Diagnostics.Runtime.DrawingModule.TrackableData
         public void MarkForRemove()
         {
             _isNeedRemove = true;
+        }
+
+        public void OnRemoved()
+        {
+            RemovablePool.Instance.Add(this);
         }
     }
 }

@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Threading;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
 {
@@ -13,18 +14,15 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
 
         private Thread _cpuThread;
         private float _lasCpuUsage;
-        private float _updateInterval;
+        private readonly float _updateInterval;
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly GUIContent _content;
 
         public CPUUsage(float updateInterval)
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            _updateInterval = updateInterval;
-        }
-
-        public void SetInterval(float updateInterval)
-        {
-            _updateInterval = Mathf.Clamp(1f, 60f, updateInterval);
+            _updateInterval = Mathf.Clamp(updateInterval, 0.5f, 10f);
+            _content = new GUIContent();
         }
 
         public void Initialize()
@@ -44,7 +42,8 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
 
         public void OnGUI()
         {
-            GUILayout.Label(new GUIContent(_cpuTime.ToString("F1") + "ms"));
+            _content.text = _cpuTime.ToString("F1") + "ms";
+            GUILayout.Label(_content);
         }
 
         public void Deconstruct()
@@ -70,17 +69,15 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
                     // Get a list of all running processes in this PC
                     // lastCpuTime = LastCpuTime(lastCpuTime);
                     // Wait for UpdateInterval
-                    
-                    var currCPUPc = new TimeSpan(0);
-                    Process[] allProcesses = Process.GetProcesses();
-                    for (int cnt = 0; cnt < allProcesses.Length; cnt++)
-                        currCPUPc += allProcesses[cnt].TotalProcessorTime;
- 
-                    TimeSpan newCPUTime = currCPUPc - lastCpuTime;
-                    _cpuTime = (int)((100 * newCPUTime.TotalSeconds / _updateInterval) / Environment.ProcessorCount);
-                    
+
+                    var allProcesses = Process.GetCurrentProcess();
+                    var currCPUPc = allProcesses.TotalProcessorTime;
+
+                    var newCPUTime = currCPUPc - lastCpuTime;
+                    _cpuTime = (float)(100 * newCPUTime.TotalSeconds / _updateInterval / Environment.ProcessorCount);
+
                     Thread.Sleep(Mathf.RoundToInt(_updateInterval * 1000));
-                    
+
                     lastCpuTime = currCPUPc;
                 }
             }

@@ -1,27 +1,28 @@
 {
-  "name": "BetterRuntimeDiagnostics.Runtime",
-  "rootNamespace": "Better.Diagnostics",
-  "references": [
-    "GUID:443314a5a4e67c14a88ae223776b6554"
-  ],
-  "includePlatforms": [],
-  "excludePlatforms": [],
-  "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
-  "autoReferenced": true,
-  "defineConstraints": [],
-  "versionDefines": [
-    {
-      "name": "com.unity.render-pipelines.universal",
-      "expression": "0.0",
-      "define": "USING_URP"
-    },
-    {
-      "name": "com.unity.render-pipelines.high-definition",
-      "expression": "0.0",
-      "define": "USING_HDRP"
-    }
-  ],
-  "noEngineReferences": false
+    "name": "BetterRuntimeDiagnostics.Runtime",
+    "rootNamespace": "Better.Diagnostics",
+    "references": [
+        "GUID:443314a5a4e67c14a88ae223776b6554",
+        "GUID:28da8d3b12e3efa47928e0c9070f853d"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.universal",
+            "expression": "0.0",
+            "define": "USING_URP"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "0.0",
+            "define": "USING_HDRP"
+        }
+    ],
+    "noEngineReferences": false
 }

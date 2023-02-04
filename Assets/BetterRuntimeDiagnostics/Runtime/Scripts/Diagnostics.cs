@@ -11,7 +11,10 @@ namespace Better.Diagnostics.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawRay(Ray ray, Color color)
         {
-            FrameListener.AddWrapper(new GenericLineWrapper(new SingleUseFloatData(ray.origin, ray.direction, 1f, color)));
+            var wrapper =
+                RemovablePool.Instance.GetWrapper<GenericLineWrapper, SingleUseFloatData, float, Vector3, Vector3, Color, float>(ray.origin, ray.direction,
+                    color, 1f);
+            FrameListener.AddWrapper(wrapper);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -24,7 +27,9 @@ namespace Better.Diagnostics.Runtime
         public static void DrawLine(Vector3 start, Vector3 end, Color color)
         {
             var vector3 = end - start;
-            FrameListener.AddWrapper(new GenericLineWrapper(new SingleUseFloatData(start, vector3.normalized, vector3.magnitude, color)));
+            var wrapper = RemovablePool.Instance.GetWrapper<GenericLineWrapper, SingleUseFloatData, float, Vector3, Vector3, Color, float>(start,
+                vector3.normalized, color, vector3.magnitude);
+            FrameListener.AddWrapper(wrapper);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -57,28 +62,39 @@ namespace Better.Diagnostics.Runtime
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawRaycastHit(RaycastHit hit, Color color)
         {
-            FrameListener.AddWrapper(new SphereWrapper(new SingleUseFloatData(hit.point, hit.normal, 0.3f, color)));
+            var wrapper =
+                RemovablePool.Instance.GetWrapper<GenericLineWrapper, SingleUseFloatData, float, Vector3, Vector3, Color, float>(hit.point, hit.normal, color,
+                    0.3f);
+            FrameListener.AddWrapper(wrapper);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawBoxCast(Vector3 center, Vector3 halfExtents, Vector3 direction, Quaternion orientation, float distance, Color color)
         {
             var end = center + direction * distance;
-            FrameListener.AddWrapper(new BoxWrapper(new SingleUseVector3Data(end, orientation, halfExtents * 2f, color)));
+
+            var wrapper =
+                RemovablePool.Instance.GetWrapper<BoxWrapper, SingleUseVector3Data, Vector3, Vector3, Quaternion, Color, Vector3>(end, orientation, color,
+                    halfExtents * 2f);
+            FrameListener.AddWrapper(wrapper);
             DrawLine(center, end, color);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawBoxCast(Vector3 center, Vector3 halfExtents, Vector3 direction, Quaternion orientation, float distance)
         {
-            DrawBoxCast(center, halfExtents, direction,orientation,distance ,Color.red);
+            DrawBoxCast(center, halfExtents, direction, orientation, distance, Color.red);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawSphereCast(Vector3 center, float size, Vector3 direction, Quaternion orientation, float distance, Color color)
         {
             var end = center + direction * distance;
-            FrameListener.AddWrapper(new SphereWrapper(new SingleUseFloatData(end, orientation, size, color)));
+
+            var wrapper =
+                RemovablePool.Instance.GetWrapper<GenericLineWrapper, SingleUseFloatData, float, Vector3, Quaternion, Color, float>(end, orientation, color,
+                    size);
+            FrameListener.AddWrapper(wrapper);
             DrawLine(center, end, color);
         }
 

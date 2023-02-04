@@ -4,13 +4,14 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.DrawingModule
 {
-    public abstract class Base : IRendererWrapper
+    public abstract class BaseWrapper : IRendererWrapper
     {
         private List<Line> _lines;
 
         public abstract bool IsMarkedForRemove { get; }
 
         public abstract void MarkForRemove();
+        public abstract void OnRemoved();
 
         public void Initialize()
         {
@@ -29,14 +30,15 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         public abstract IEnumerable<Line> GetLines();
     }
     
-    public abstract class BaseWrapper<T> : Base
+    public abstract class BaseWrapper<T> : BaseWrapper, ISettable<ITrackableData<T>, IRendererWrapper>
     {
-        private protected readonly ITrackableData<T> _data;
+        private protected ITrackableData<T> _data;
         public override bool IsMarkedForRemove => _data.IsMarkedForRemove;
 
-        protected BaseWrapper(ITrackableData<T> data)
+        public IRendererWrapper Set(ITrackableData<T> data)
         {
             _data = data;
+            return this;
         }
 
         protected override Color GetColor()

@@ -18,8 +18,31 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             _lines = FillUpSideLines();
         }
 
-        public abstract void MarkForRemove();
-        public abstract void OnRemoved();
+        public virtual void MarkForRemove()
+        {
+            foreach (var line in _lines)
+            {
+                line.MarkForRemove();
+            }
+            
+            foreach (var line in _baseCircle)
+            {
+                line.MarkForRemove();
+            }
+        }
+
+        public virtual void OnRemoved()
+        {
+            foreach (var line in _lines)
+            {
+                line.OnRemoved();
+            }
+            
+            foreach (var line in _baseCircle)
+            {
+                line.OnRemoved();
+            }
+        }
 
         protected abstract IList<Line> FillUpSideLines();
 
@@ -45,14 +68,15 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             var t = 0;
             for (var index = 0; index < _lines.Count; index++)
             {
-                var line = _lines[index];
+                var line = _lines[index].Copy();
                 list[t] = line.MoveEndBy(baseSize).MoveEnd(height) * matrix4X4;
                 t++;
             }
 
             for (var index = 0; index < _baseCircle.Count; index++)
             {
-                list[t] = ((_baseCircle[index] * baseSize) + height) * matrix4X4;
+                var copy = _baseCircle[index].Copy();
+                list[t] = (copy * baseSize + height) * matrix4X4;
                 t++;
             }
 

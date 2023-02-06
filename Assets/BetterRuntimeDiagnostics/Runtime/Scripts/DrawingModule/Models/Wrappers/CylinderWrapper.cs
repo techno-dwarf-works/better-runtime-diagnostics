@@ -11,7 +11,7 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         private Line[] _lines;
         private List<Line> _horizontalLines;
         private protected SphereCalculator _calculator;
-        private ITrackableData<float> _data;
+        private protected ITrackableData<float> _data;
 
         public bool IsMarkedForRemove => _data.IsMarkedForRemove;
 
@@ -19,6 +19,10 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             RemovablePool.Instance.Add(this);
             _data.OnRemoved();
+            foreach (var line in _lines)
+            {
+                line.OnRemoved();
+            }
         }
 
         public IRendererWrapper Set(ITrackableData<float> data)
@@ -30,18 +34,22 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         public void MarkForRemove()
         {
             _data.MarkForRemove();
+            foreach (var line in _lines)
+            {
+                line.MarkForRemove();
+            }
         }
 
         public virtual void Initialize()
         {
             _calculator = new SphereCalculator();
-            _horizontalLines = _calculator.PrepareHorizontalCircle();
+            _horizontalLines = _calculator.PrepareHorizontalCircle(_data.Color);
 
             _lines = new Line[4];
-            _lines[0] = new Line(new Vector3(-1, 1, 0), new Vector3(-1, -1, 0));
-            _lines[1] = new Line(new Vector3(1, 1, 0), new Vector3(1, -1, 0));
-            _lines[2] = new Line(new Vector3(0, 1, 1), new Vector3(0, -1, 1));
-            _lines[3] = new Line(new Vector3(0, 1, -1), new Vector3(0, -1, -1));
+            _lines[0] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(new Vector3(-1, 1, 0), new Vector3(-1, -1, 0), _data.Color);
+            _lines[1] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(new Vector3(1, 1, 0), new Vector3(1, -1, 0), _data.Color);
+            _lines[2] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(new Vector3(0, 1, 1), new Vector3(0, -1, 1), _data.Color);
+            _lines[3] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(new Vector3(0, 1, -1), new Vector3(0, -1, -1), _data.Color);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -74,15 +82,18 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             for (var i = 0; i < _horizontalLines.Count; i++)
             {
-                lines[index] = (_horizontalLines[i] * radius + up) * matrix4X4;
+                var upHorizontalLine = _horizontalLines[i].Copy();
+                var downHorizontalLine = _horizontalLines[i].Copy();
+                lines[index] = (upHorizontalLine * radius + up) * matrix4X4;
                 index++;
-                lines[index] = (_horizontalLines[i] * radius - up) * matrix4X4;
+                lines[index] = (downHorizontalLine * radius - up) * matrix4X4;
                 index++;
             }
 
             for (var i = 0; i < _lines.Length; i++)
             {
-                lines[index] = _lines[i].Multiply(radius, size, radius) * matrix4X4;
+                var line = _lines[i].Copy();
+                lines[index] = line.Multiply(radius, size, radius) * matrix4X4;
                 index++;
             }
         }

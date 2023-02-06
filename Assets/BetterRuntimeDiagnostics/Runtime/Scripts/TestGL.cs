@@ -39,7 +39,7 @@ namespace Better.Diagnostics.Runtime
         private void Update()
         {
             var transform1 = transform;
-            Diagnostics.DrawRay(new Ray(transform1.position, transform1.forward), Color.cyan);
+            Diagnostic.DrawRay(new Ray(transform1.position, transform1.forward), Color.cyan);
         }
     }
 }

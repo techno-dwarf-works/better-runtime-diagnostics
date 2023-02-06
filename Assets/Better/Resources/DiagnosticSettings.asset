@@ -14,6 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultRenderColor: {r: 1, g: 0, b: 0, a: 1}
   displayFrameCount: 1
-  fpsUpdateInterval: 0.5
+  fpsUpdateInterval:
+    updateInterval: 0.5
   displayCPUUsage: 1
-  cpuUpdateInterval: 0.5
+  cpuUpdateInterval:
+    updateInterval: 0.5
+  displayRAMUsage: 1
+  ramUpdateInterval:
+    updateInterval: 0.5
+  displayRenderingUsage: 1
+  renderingUpdateInterval:
+    updateInterval: 1.5

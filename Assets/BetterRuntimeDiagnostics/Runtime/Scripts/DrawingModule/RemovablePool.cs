@@ -56,6 +56,12 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             return new T();
         }
 
+        public TType Get<TType, TData1, TData2, TData3>(TData1 data1, TData2 data2, TData3 data3)
+            where TType : class, IRemovable, ISettable<TData1, TData2, TData3, TType>, new()
+        {
+            return Get<TType>().Set(data1, data2, data3);
+        }
+
         public TRenderer Get<TRenderer, TWrapper, TData>(TData data)
             where TRenderer : class, IRemovable, ISettable<IRendererWrapper, IDiagnosticsRenderer>, new()
             where TWrapper : class, IRemovable, ISettable<TData, IRendererWrapper>, new()

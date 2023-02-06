@@ -11,7 +11,14 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         public abstract bool IsMarkedForRemove { get; }
 
         public abstract void MarkForRemove();
-        public abstract void OnRemoved();
+
+        public virtual void OnRemoved()
+        {
+            foreach (var line in _lines)
+            {
+                line.OnRemoved();
+            }
+        }
 
         public void Initialize()
         {

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime
 {
-    public static class Diagnostics
+    public static class Diagnostic
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void DrawRay(Ray ray, Color color)

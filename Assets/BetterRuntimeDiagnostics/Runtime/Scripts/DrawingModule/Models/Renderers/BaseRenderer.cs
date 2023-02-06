@@ -39,11 +39,12 @@ namespace Better.Diagnostics.Runtime.DrawingModule
 
             GL.Begin(GL.LINES);
 
+            var enumerable = _wrapper.GetLines();
             try
             {
-                foreach (var corner in _wrapper.GetLines())
+                foreach (var line in enumerable)
                 {
-                    corner.Draw();
+                    line.Draw();
                 }
             }
             catch (Exception e)
@@ -54,6 +55,13 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             {
                 GL.End();
                 GL.PopMatrix();
+                
+                
+                foreach (var line in enumerable)
+                {
+                    line.MarkForRemove();
+                    line.OnRemoved();
+                }
             }
         }
     }

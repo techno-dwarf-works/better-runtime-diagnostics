@@ -8,44 +8,46 @@ namespace Better.Diagnostics.Runtime.DrawingModule
     {
         private ITrackableData<float> _data;
 
-        
+
         public override bool IsMarkedForRemove => _data.IsMarkedForRemove;
-        
+
 
         public IRendererWrapper Set(ITrackableData<float> data)
         {
             _data = data;
             return this;
         }
-        
+
         public override void OnRemoved()
         {
             RemovablePool.Instance.Add(this);
             _data.OnRemoved();
+            base.OnRemoved();
         }
 
         public override void MarkForRemove()
         {
             _data.MarkForRemove();
+            base.MarkForRemove();
         }
 
         protected override IList<Line> FillUpSideLines()
         {
             var lines = new Line[4];
-            lines[0] = new Line(Vector3.zero, Vector3.forward);
-            lines[1] = new Line(Vector3.zero, Vector3.back);
-            lines[2] = new Line(Vector3.zero, Vector3.right);
-            lines[3] = new Line(Vector3.zero, Vector3.left);
+            lines[0] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.zero, Vector3.forward, _data.Color);
+            lines[1] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.zero, Vector3.back, _data.Color);
+            lines[2] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.zero, Vector3.right, _data.Color);
+            lines[3] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.zero, Vector3.left, _data.Color);
             return lines;
         }
 
         public override IList<Line> FillUpBaseLines()
         {
             var lines = new Line[4];
-            lines[0] = new Line(Vector3.right, Vector3.forward);
-            lines[1] = new Line(Vector3.right, Vector3.back);
-            lines[2] = new Line(Vector3.forward, Vector3.left);
-            lines[3] = new Line(Vector3.back, Vector3.left);
+            lines[0] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.right, Vector3.forward, _data.Color);
+            lines[1] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.right, Vector3.back, _data.Color);
+            lines[2] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.forward, Vector3.left, _data.Color);
+            lines[3] = RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.back, Vector3.left, _data.Color);
             return lines;
         }
 

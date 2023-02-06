@@ -1,11 +1,12 @@
 ﻿using System;
-//TODO: Implement own process get https://answers.unity.com/questions/1792187/systemdiagnosticsprocessgetprocesses-is-not-workin.html
 using System.Diagnostics;
 using System.Threading;
+using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
-namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
+//TODO: Implement own process get https://answers.unity.com/questions/1792187/systemdiagnosticsprocessgetprocesses-is-not-workin.html
+
+namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class CPUUsage : IDebugInfo
     {
@@ -14,14 +15,14 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
 
         private Thread _cpuThread;
         private float _lasCpuUsage;
-        private readonly float _updateInterval;
+        private readonly UpdateInterval _updateInterval;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly GUIContent _content;
 
-        public CPUUsage(float updateInterval)
+        public CPUUsage(UpdateInterval updateInterval)
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            _updateInterval = Mathf.Clamp(updateInterval, 0.5f, 10f);
+            _updateInterval = updateInterval;
             _content = new GUIContent();
         }
 
@@ -52,8 +53,7 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
             _cancellationTokenSource.Cancel(false);
             _cpuThread?.Abort();
         }
-
-
+        
         /// <summary>
         /// Runs in Thread
         /// </summary>
@@ -74,9 +74,9 @@ namespace Better.Diagnostics.Runtime.PerformanceAnalyzer
                     var currCPUPc = allProcesses.TotalProcessorTime;
 
                     var newCPUTime = currCPUPc - lastCpuTime;
-                    _cpuTime = (float)(100 * newCPUTime.TotalSeconds / _updateInterval / Environment.ProcessorCount);
+                    _cpuTime = (float)(100 * newCPUTime.TotalSeconds / _updateInterval.Interval / _processorCount);
 
-                    Thread.Sleep(Mathf.RoundToInt(_updateInterval * 1000));
+                    Thread.Sleep(Mathf.RoundToInt(_updateInterval.Interval * 1000));
 
                     lastCpuTime = currCPUPc;
                 }

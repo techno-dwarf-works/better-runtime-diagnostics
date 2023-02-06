@@ -18,24 +18,22 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             var vertice6 = new Vector3(1, 1, -1);
             var vertice7 = new Vector3(1, 1, 1);
             var vertice8 = new Vector3(-1, 1, 1);
-
+            
             //Bottom
-            points.Add(new Line(vertice1, vertice2, dataColor)); //Back Bottom Edge
-            points.Add(new Line(vertice2, vertice3, dataColor)); //Right Bottom Edge
-            points.Add(new Line(vertice3, vertice4, dataColor)); //Forward Bottom Edge
-            points.Add(new Line(vertice4, vertice1, dataColor)); //Left Bottom Edge
-
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice1, vertice2, dataColor)); //Back Bottom Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice2, vertice3, dataColor)); //Right Bottom Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice3, vertice4, dataColor)); //Forward Bottom Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice4, vertice1, dataColor)); //Left Bottom Edge
             //Top
-            points.Add(new Line(vertice5, vertice6, dataColor)); //Back Top Edge
-            points.Add(new Line(vertice6, vertice7, dataColor)); //Right Top Edge
-            points.Add(new Line(vertice7, vertice8, dataColor)); //Forward Top Edge
-            points.Add(new Line(vertice8, vertice5, dataColor)); //Left Top Edge
-
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice5, vertice6, dataColor)); //Back Top Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice6, vertice7, dataColor)); //Right Top Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice7, vertice8, dataColor)); //Forward Top Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice8, vertice5, dataColor)); //Left Top Edge
             //Edges
-            points.Add(new Line(vertice5, vertice1, dataColor)); //Left Back Edge
-            points.Add(new Line(vertice6, vertice2, dataColor)); //Right Back Edge
-            points.Add(new Line(vertice7, vertice3, dataColor)); //Right Forward Edge
-            points.Add(new Line(vertice8, vertice4, dataColor)); //Left Forward Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice5, vertice1, dataColor)); //Left Back Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice6, vertice2, dataColor)); //Right Back Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice7, vertice3, dataColor)); //Right Forward Edge
+            points.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(vertice8, vertice4, dataColor)); //Left Forward Edge
 
             return points;
         }
@@ -47,10 +45,11 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             var trackableData = _data;
             var matrix4X4 = trackableData.Matrix4X4;
             var size = trackableData.Size;
-            
-            for (int i = 0; i < baseLines.Count; i++)
+
+            for (var i = 0; i < baseLines.Count; i++)
             {
-                lines[i] = baseLines[i] * (size / 2f) * matrix4X4;
+                var copy = baseLines[i].Copy();
+                lines[i] = copy * (size / 2f) * matrix4X4;
             }
 
             return lines;
@@ -60,6 +59,7 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             RemovablePool.Instance.Add(this);
             _data.OnRemoved();
+            base.OnRemoved();
         }
     }
 }

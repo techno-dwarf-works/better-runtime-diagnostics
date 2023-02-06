@@ -9,7 +9,6 @@ namespace Better.Diagnostics.Runtime.DrawingModule.Framing.Models
         public override void Initialize()
         {
             base.Initialize();
-            
             RenderPipelineManager.endContextRendering += OnEndFrameRendering;
             //RenderPipelineManager.beginFrameRendering
         }

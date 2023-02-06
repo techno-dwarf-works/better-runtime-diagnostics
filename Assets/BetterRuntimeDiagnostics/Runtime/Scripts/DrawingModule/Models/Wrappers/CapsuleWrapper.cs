@@ -18,9 +18,9 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             base.Initialize();
 
-            _topCapLines = _calculator.PrepareTopCap();
+            _topCapLines = _calculator.PrepareTopCap(_data.Color);
 
-            _botCapLines = _calculator.PrepareBottomCap();
+            _botCapLines = _calculator.PrepareBottomCap(_data.Color);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -34,13 +34,15 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             for (var i = 0; i < _topCapLines.Count; i++)
             {
-                lines[index] = (_topCapLines[i] * radius + up) * matrix4X4;
+                var copy = _topCapLines[i].Copy();
+                lines[index] = (copy * radius + up) * matrix4X4;
                 index++;
             }
 
             for (var i = 0; i < _botCapLines.Count; i++)
             {
-                lines[index] = (_botCapLines[i] * radius - up) * matrix4X4;
+                var copy = _botCapLines[i].Copy();
+                lines[index] = (copy * radius - up) * matrix4X4;
                 index++;
             }
             base.TransformLines(lines, ref index, size, radius, up, matrix4X4);

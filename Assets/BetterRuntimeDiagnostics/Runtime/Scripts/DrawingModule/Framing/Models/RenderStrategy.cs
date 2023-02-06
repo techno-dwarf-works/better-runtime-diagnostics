@@ -7,15 +7,16 @@ using Object = UnityEngine.Object;
 
 namespace Better.Diagnostics.Runtime.DrawingModule.Framing.Models
 {
-    internal abstract class RenderStrategy
+    public abstract class RenderStrategy
     {
+        public const string ShaderName = "Hidden/Diagnostics/Unlit";
         private List<IDiagnosticsRenderer> _renderers;
         private Material _material;
         private readonly Func<IDiagnosticsRenderer, bool> _predicate = x => x.IsMarkedForRemove;
 
         public virtual void Initialize()
         {
-            _material = new Material(Shader.Find("Hidden/Diagnostics/Unlit"));
+            _material = new Material(Shader.Find(ShaderName));
             _renderers = new List<IDiagnosticsRenderer>();
         }
 

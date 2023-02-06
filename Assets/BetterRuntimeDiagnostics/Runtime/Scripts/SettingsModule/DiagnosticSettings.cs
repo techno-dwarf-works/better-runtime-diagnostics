@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using Better.DataStructures.Ranges;
-using Better.Diagnostics.Runtime.PerformanceAnalyzer;
+using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
+using Better.Diagnostics.Runtime.InfoDisplayer.Models;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.SettingsModule
@@ -8,29 +8,41 @@ namespace Better.Diagnostics.Runtime.SettingsModule
     [CreateAssetMenu(menuName = "Better/Diagnostic/Create Settings", fileName = "DiagnosticSettings", order = 0)]
     public class DiagnosticSettings : ScriptableObject
     {
-        [ColorUsage(false, false)] [SerializeField]
+        [ColorUsage(false, false)] 
+        [SerializeField]
         private Color defaultRenderColor = Color.red;
 
-        [Header("Frame Settings")] [SerializeField]
-        private bool displayFrameCount;
+        [Header("Frame Settings")] 
+        [SerializeField]
+        private bool displayFrameCount = true;
 
         [Tooltip("In which interval should the FPS usage be updated?")] 
-        [Range(0.1f, 10f)] [SerializeField]
-        private float fpsUpdateInterval = 1f;
+        [SerializeField]
+        private UpdateInterval fpsUpdateInterval = 1f;
 
-        [Header("CPU Settings")] [SerializeField]
-        private bool displayCPUUsage;
-
-        [Tooltip("In which interval should the CPU usage be updated?")] 
-        [Range(0.1f, 10f)] [SerializeField]
-        private float cpuUpdateInterval = 0.5f;
-        
-        [Header("RAM Settings")] [SerializeField]
-        private bool displayRAMUsage;
+        [Header("CPU Settings")] 
+        [SerializeField]
+        private bool displayCPUUsage = true;
 
         [Tooltip("In which interval should the CPU usage be updated?")] 
-        [Range(0.1f, 10f)] [SerializeField]
-        private float ramUpdateInterval = 0.5f;
+        [SerializeField]
+        private UpdateInterval cpuUpdateInterval = 0.5f;
+
+        [Header("RAM Settings")] 
+        [SerializeField]
+        private bool displayRAMUsage = true;
+
+        [Tooltip("In which interval should the CPU usage be updated?")] 
+        [SerializeField]
+        private UpdateInterval ramUpdateInterval = 0.5f;
+
+        [Header("Rendering Settings")] 
+        [SerializeField]
+        private bool displayRenderingUsage = true;
+
+        [Tooltip("In which interval should the CPU usage be updated?")] 
+        [SerializeField]
+        private UpdateInterval renderingUpdateInterval = 1.5f;
 
         public List<IDebugInfo> SetUpInfos()
         {
@@ -49,6 +61,11 @@ namespace Better.Diagnostics.Runtime.SettingsModule
             if (displayRAMUsage)
             {
                 infos.Add(new RAMUsage(ramUpdateInterval));
+            }
+
+            if (displayRenderingUsage)
+            {
+                infos.Add(new RenderingCounters(renderingUpdateInterval));
             }
 
             return infos;

@@ -11,12 +11,13 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             RemovablePool.Instance.Add(this);
             _data.OnRemoved();
+            base.OnRemoved();
         }
 
         private protected override List<Line> GenerateBaseLines(Color color)
         {
             var sphereCalculator = new SphereCalculator();
-            var lines = sphereCalculator.PrepareHorizontalCircle();
+            var lines = sphereCalculator.PrepareHorizontalCircle(_data.Color);
             var thetaRangeMin = SphereCalculator.ThetaRange.Min + SphereCalculator.Step;
             var rangeMax = SphereCalculator.ThetaRange.Max + SphereCalculator.Step;
             var phiRangeMin = SphereCalculator.PhiRange.Min;
@@ -27,11 +28,11 @@ namespace Better.Diagnostics.Runtime.DrawingModule
 
                 var start = SphereCalculator.Spherical(0, previousStep);
                 var end = SphereCalculator.Spherical(0, theta);
-                lines.Add(new Line(start, end, color));
+                lines.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(start, end, color));
 
                 var start1 = SphereCalculator.Spherical(phiRangeMin, previousStep);
                 var end1 = SphereCalculator.Spherical(phiRangeMin, theta);
-                lines.Add(new Line(start1, end1, color));
+                lines.Add(RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(start1, end1, color));
             }
 
             return lines;
@@ -46,7 +47,8 @@ namespace Better.Diagnostics.Runtime.DrawingModule
 
             for (var i = 0; i < baseLines.Count; i++)
             {
-                lines[i] = baseLines[i] * r * matrix4X4;
+                var copy = baseLines[i].Copy();
+                lines[i] = copy * r * matrix4X4;
             }
 
             return lines;

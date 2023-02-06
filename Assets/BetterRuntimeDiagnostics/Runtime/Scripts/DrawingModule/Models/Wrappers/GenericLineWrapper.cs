@@ -10,13 +10,14 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             RemovablePool.Instance.Add(this);
             _data.OnRemoved();
+            base.OnRemoved();
         }
 
         private protected override List<Line> GenerateBaseLines(Color color)
         {
-            var points = new List<Line>(3)
+            var points = new List<Line>(1)
             {
-                new Line(Vector3.zero, Vector3.forward, color),
+                RemovablePool.Instance.Get<Line, Vector3, Vector3, Color>(Vector3.zero, Vector3.forward, color)
             };
 
             return points;
@@ -26,9 +27,10 @@ namespace Better.Diagnostics.Runtime.DrawingModule
         {
             var baseLines = GetBaseLines();
             var lines = new Line[baseLines.Count];
-            for (int i = 0; i < baseLines.Count; i++)
+            for (var i = 0; i < baseLines.Count; i++)
             {
-                lines[i] = baseLines[i] * _data.Matrix4X4;
+                var copy = baseLines[i].Copy();
+                lines[i] = copy * _data.Matrix4X4;
             }
 
             return lines;

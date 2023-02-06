@@ -2,7 +2,8 @@
     "name": "BetterRuntimeDiagnostics.Editor",
     "rootNamespace": "Better.Diagnostics",
     "references": [
-        "GUID:443314a5a4e67c14a88ae223776b6554"
+        "GUID:443314a5a4e67c14a88ae223776b6554",
+        "GUID:e814aa02d2733a8468421da96297a7f7"
     ],
     "includePlatforms": [
         "Editor"

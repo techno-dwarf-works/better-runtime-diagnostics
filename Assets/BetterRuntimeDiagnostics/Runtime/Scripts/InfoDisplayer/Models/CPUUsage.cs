@@ -74,7 +74,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
                     var currCPUPc = allProcesses.TotalProcessorTime;
 
                     var newCPUTime = currCPUPc - lastCpuTime;
-                    _cpuTime = (float)(100 * newCPUTime.TotalSeconds / _updateInterval.Interval / _processorCount);
+                    _cpuTime = (float)(100f * newCPUTime.TotalSeconds / (_updateInterval.Interval * _processorCount));
 
                     Thread.Sleep(Mathf.RoundToInt(_updateInterval.Interval * 1000));
 

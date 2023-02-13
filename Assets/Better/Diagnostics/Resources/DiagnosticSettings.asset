@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a448b64130742a58dc1830b54cfa975, type: 3}
+  m_Name: DiagnosticSettings
+  m_EditorClassIdentifier: 
+  defaultRenderColor: {r: 1, g: 0, b: 0, a: 1}
+  settings:
+  - rid: 694170354104401925
+  - rid: 694170354104401926
+  - rid: 694170354104401927
+  references:
+    version: 2
+    RefIds:
+    - rid: 694170354104401925
+      type: {class: CPUUsageSetting, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position: {x: 42, y: 68}
+        cpuUpdateInterval:
+          updateInterval: 0
+    - rid: 694170354104401926
+      type: {class: FixedUpdateTrackerSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position: {x: 44, y: 135.99998}
+        trackerSize: 5
+        test: 3.8
+    - rid: 694170354104401927
+      type: {class: TimeScaleSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position: {x: 43, y: 21.200016}

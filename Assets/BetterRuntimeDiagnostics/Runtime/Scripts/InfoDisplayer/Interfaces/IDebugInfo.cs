@@ -11,4 +11,9 @@
     {
         public void Update();
     }
+    
+    public interface IFixedUpdateableInfo
+    {
+        public void FixedUpdate();
+    }
 }

@@ -4,7 +4,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class ScaledFrameCounter : BaseFrameCounter
     {
-        public ScaledFrameCounter(Vector2 position, UpdateInterval updateInterval) : base(position, updateInterval)
+        public ScaledFrameCounter(Rect position, UpdateInterval updateInterval) : base(position, updateInterval)
         {
         }
 

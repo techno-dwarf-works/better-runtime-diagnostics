@@ -6,14 +6,14 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public abstract class BaseFrameCounter : IDebugInfo, IUpdateableInfo
     {
-        private readonly Vector2 _position;
+        private readonly Rect _position;
         private float _deltaTime;
         private float _lastFPS;
         private readonly GUIContent _content;
         private float _nextUpdate;
         private readonly UpdateTimer _updateTimer;
 
-        public BaseFrameCounter(Vector2 position, UpdateInterval updateInterval)
+        public BaseFrameCounter(Rect position, UpdateInterval updateInterval)
         {
             _position = position;
             _updateTimer = new UpdateTimer(updateInterval, OnUpdate);
@@ -41,7 +41,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 
         public virtual void OnGUI()
         {
-            GUI.Label(new Rect(_position, GUI.skin.label.CalcSize(_content)), _content);
+            GUI.Label(_position, _content);
         }
 
         public virtual void Deconstruct()

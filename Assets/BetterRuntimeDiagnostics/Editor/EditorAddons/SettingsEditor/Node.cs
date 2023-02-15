@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Better.Extensions.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -10,39 +7,6 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 {
     public class Node
     {
-        private class FieldObject
-        {
-            private readonly FieldInfo _fieldInfo;
-            private readonly object _obj;
-            private readonly string _fieldName;
-
-            public string FieldName => _fieldName;
-
-            public Type FieldType => _fieldInfo.FieldType;
-
-            public FieldObject(FieldInfo fieldInfo, object obj)
-            {
-                _fieldInfo = fieldInfo;
-                _fieldName = _fieldInfo.Name.PrettyCamelCase();
-                _obj = obj;
-            }
-
-            public void SetValue(object value)
-            {
-                _fieldInfo.SetValue(_obj, value);
-            }
-
-            public object GetValue()
-            {
-                return _fieldInfo.GetValue(_obj);
-            }
-
-            public T GetCustomAttribute<T>() where T : Attribute
-            {
-                return _fieldInfo.GetCustomAttribute<T>();
-            }
-        }
-
         private readonly string _title;
         private readonly GUIStyle _defaultNodeStyle;
         private readonly GUIStyle _selectedNodeStyle;
@@ -50,8 +14,6 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         private readonly Action<Node> _onRemoveNode;
 
         private readonly NodeItem _nodeItem;
-
-        private readonly FieldObject[] _fieldInfos;
 
         public NodeItem Object => _nodeItem;
 
@@ -61,115 +23,50 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         private bool _isSelected;
 
         private GUIStyle _style;
+        private readonly FieldsDrawer _drawer;
+        private float _resizeThickness = 10f;
+        private bool _onEdge;
+        private bool _horizontal;
+        private bool _vertical;
 
-        public Node(Vector2 position, NodeItem nodeItem, GUIStyle nodeStyle, GUIStyle selectedStyle, Action<Node> onClickRemoveNode)
+        public event Action OnChanged;
+
+        public Node(NodeItem nodeItem, GUIStyle nodeStyle, GUIStyle selectedStyle, Action<Node> onClickRemoveNode)
         {
             _nodeItem = nodeItem;
             var type = _nodeItem.InnerObject.GetType();
             _title = type.Name.PrettyCamelCase();
-            _fieldInfos = GetFields(_nodeItem.InnerObject);
-            _rect = new Rect(position, NodeWindow.DefaultSize);
+            _drawer = new FieldsDrawer(nodeItem.InnerObject);
+            _drawer.OnChanged += OnDataChanged;
+            _rect = nodeItem.Position;
             _style = nodeStyle;
             _defaultNodeStyle = nodeStyle;
             _selectedNodeStyle = selectedStyle;
             _onRemoveNode = onClickRemoveNode;
         }
 
-
-        private static HashSet<Type> BaseTypes = new HashSet<Type>()
+        private void OnDataChanged()
         {
-            typeof(int), typeof(float)
-        };
-
-        private static FieldObject[] GetFields(object obj)
-        {
-            var type = obj.GetType();
-            var t = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                .Where(x => x.GetCustomAttribute<SerializeField>() != null).ToArray();
-
-            var bases = t.Where(x => BaseTypes.Contains(x.FieldType)).ToArray();
-
-            var remaining = t.Except(bases);
-
-            var next = remaining.SelectMany(x => GetFields(x.GetValue(obj)));
-            var toReturn = !bases.Any() ? next : bases.Select(x => new FieldObject(x, obj)).Concat(next);
-            return toReturn.ToArray();
-        }
-
-        private void DrawByReflection(Rect rect)
-        {
-            var style = EditorStyles.label;
-            var labelRect = new Rect(rect);
-            var stylePadding = _style.padding;
-            var styleMargin = _style.margin;
-            var singleLine = EditorGUIUtility.singleLineHeight;
-            var left = stylePadding.left + styleMargin.left;
-            var right = stylePadding.right + styleMargin.right;
-            var line = rect.size.x - singleLine - left - right;
-            labelRect.position += new Vector2(left, stylePadding.top + styleMargin.top);
-
-            foreach (var fieldInfo in _fieldInfos)
-            {
-                if (fieldInfo.FieldType == typeof(Rect)) continue;
-                var fieldName = new GUIContent(fieldInfo.FieldName);
-                EditorGUI.LabelField(labelRect, fieldName);
-
-                var size = style.CalcSize(fieldName);
-
-                var fieldRect = new Rect(labelRect);
-                fieldRect.position += new Vector2(singleLine + size.x, singleLine);
-                fieldRect.height = singleLine;
-                fieldRect.width = line - size.x;
-
-                DrawField(fieldInfo, fieldRect);
-
-                labelRect.position += Vector2.up * singleLine;
-            }
-        }
-
-        private void DrawField(FieldObject obj, Rect fieldRect)
-        {
-            var value = obj.GetValue();
-            using (var check = new EditorGUI.ChangeCheckScope())
-            {
-                if (value is int intValue)
-                {
-                    var t = EditorGUI.IntField(fieldRect, intValue);
-                    if (check.changed)
-                    {
-                        value = Mathf.RoundToInt(ValidateMin(obj, t));
-                    }
-                }
-                else if (value is float floatValue)
-                {
-                    var range = obj.GetCustomAttribute<RangeAttribute>();
-                    var t = range == null ? EditorGUI.FloatField(fieldRect, floatValue) : EditorGUI.Slider(fieldRect, floatValue, range.min, range.max);
-
-                    if (check.changed)
-                    {
-                        value = ValidateMin(obj, t);
-                    }
-                }
-
-                if (check.changed)
-                {
-                    obj.SetValue(value);
-                }
-            }
-        }
-
-        private static float ValidateMin(FieldObject fieldObject, float t)
-        {
-            var attribute = fieldObject.GetCustomAttribute<MinAttribute>();
-            if (attribute != null)
-                t = Mathf.Max(attribute.min, t);
-            return t;
+            OnChanged?.Invoke();
         }
 
         private void DragInternal(Vector2 delta)
         {
             _rect.position += delta;
-            _nodeItem.SetPosition(_rect.position);
+            _nodeItem.SetPosition(_rect);
+            OnDataChanged();
+        }
+
+        private void ProcessContextMenu()
+        {
+            var genericMenu = new GenericMenu();
+            genericMenu.AddItem(new GUIContent("Remove node"), false, OnClickRemoveNode);
+            genericMenu.ShowAsContext();
+        }
+
+        private void OnClickRemoveNode()
+        {
+            _onRemoveNode?.Invoke(this);
         }
 
         public void Drag(Vector2 delta)
@@ -179,30 +76,56 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
         public void Draw()
         {
-            var absoluteRect = new Rect(_rect.position + _relativeDrag.position, _rect.size + _relativeDrag.size);
+            var absoluteRect = AbsoluteRect();
 
             if (_isDragged || _isSelected)
             {
                 var positionRect = new Rect(absoluteRect);
-                positionRect.position += Vector2.down * (EditorGUIUtility.singleLineHeight * 2);
+                positionRect.position += Vector2.down * (EditorGUIUtility.singleLineHeight * 2f);
                 GUI.Label(positionRect, $"(x:{_rect.x}, y:{_rect.y})");
             }
-            
+
             var copyRect = new Rect(absoluteRect);
-            copyRect.height += _fieldInfos.Count(x => x.GetType() != typeof(Rect)) * EditorGUIUtility.singleLineHeight;
+            copyRect.height += _drawer.GetHeight();
             GUI.Box(copyRect, _title, _style);
-            DrawByReflection(absoluteRect);
+            _drawer.Draw(absoluteRect, _style);
+
+            if (_onEdge)
+            {
+                var cursorType = MouseCursor.Orbit;
+                if (_horizontal && _vertical)
+                {
+                    cursorType = MouseCursor.ScaleArrow;
+                }
+                else if (_horizontal)
+                {
+                    cursorType = MouseCursor.ResizeHorizontal;
+                }
+                else if (_vertical)
+                {
+                    cursorType = MouseCursor.ResizeVertical;
+                }
+
+                EditorGUIUtility.AddCursorRect(copyRect, cursorType);
+            }
+        }
+
+        private Rect AbsoluteRect()
+        {
+            return new Rect(_rect.position + _relativeDrag.position, _rect.size + _relativeDrag.size);
         }
 
         public bool ProcessEvents(Event e)
         {
-            var absoluteRect = new Rect(_rect.position + _relativeDrag.position, _rect.size + _relativeDrag.size);
+            var absoluteRect = AbsoluteRect();
+            absoluteRect.height += _drawer.GetHeight();
+            var mousePosition = e.mousePosition;
             switch (e.type)
             {
                 case EventType.MouseDown:
                     if (e.button == 0)
                     {
-                        if (absoluteRect.Contains(e.mousePosition))
+                        if (absoluteRect.Contains(mousePosition))
                         {
                             _isDragged = true;
                             GUI.changed = true;
@@ -210,14 +133,12 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
                             _style = _selectedNodeStyle;
                             return true;
                         }
-                        else
-                        {
-                            GUI.changed = true;
-                            _isSelected = false;
-                            _style = _defaultNodeStyle;
-                        }
+
+                        GUI.changed = true;
+                        _isSelected = false;
+                        _style = _defaultNodeStyle;
                     }
-                    else if (e.button == 1 && _isSelected && absoluteRect.Contains(e.mousePosition))
+                    else if (e.button == 1 && _isSelected && absoluteRect.Contains(mousePosition))
                     {
                         ProcessContextMenu();
                         e.Use();
@@ -239,21 +160,26 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
                     }
 
                     break;
+                case EventType.MouseMove:
+
+
+                    var maxRect = Rect.MinMaxRect(absoluteRect.xMin - _resizeThickness, absoluteRect.yMin - _resizeThickness,
+                        absoluteRect.xMax + _resizeThickness, absoluteRect.yMax + _resizeThickness);
+                    var minRect = Rect.MinMaxRect(absoluteRect.xMin + _resizeThickness, absoluteRect.yMin + _resizeThickness,
+                        absoluteRect.xMax - _resizeThickness, absoluteRect.yMax - _resizeThickness);
+
+                    var leftEdge = Rect.MinMaxRect(maxRect.xMin, maxRect.yMin, minRect.xMin, maxRect.yMax);
+                    var rightEdge = Rect.MinMaxRect(minRect.xMax, maxRect.yMin, maxRect.xMax, maxRect.yMax);
+                    var topEdge = Rect.MinMaxRect(maxRect.xMin, maxRect.yMin, maxRect.xMax, minRect.yMin);
+                    var botEdge = Rect.MinMaxRect(maxRect.xMin, minRect.yMax, maxRect.xMax, maxRect.yMax);
+
+                    _onEdge = maxRect.Contains(mousePosition) && !minRect.Contains(mousePosition);
+                    _horizontal = leftEdge.Contains(mousePosition) || rightEdge.Contains(mousePosition);
+                    _vertical = topEdge.Contains(mousePosition) || botEdge.Contains(mousePosition);
+                    return true;
             }
 
             return false;
-        }
-
-        private void ProcessContextMenu()
-        {
-            var genericMenu = new GenericMenu();
-            genericMenu.AddItem(new GUIContent("Remove node"), false, OnClickRemoveNode);
-            genericMenu.ShowAsContext();
-        }
-
-        private void OnClickRemoveNode()
-        {
-            _onRemoveNode?.Invoke(this);
         }
     }
 }

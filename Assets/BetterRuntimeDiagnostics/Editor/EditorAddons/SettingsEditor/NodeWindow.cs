@@ -21,6 +21,9 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
         public static readonly Vector2 DefaultSize = new Vector2(300, 50);
         private List<NodeGroup> _groups;
+        public event Action OnSave;
+        public event Action OnDiscard;
+        public event Action OnChanged;
 
         public static NodeWindow OpenWindow()
         {
@@ -28,6 +31,13 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             window.titleContent = new GUIContent("Node Based Editor");
             window._menuList = null;
             window._nodes = null;
+            window._onCreate = null;
+            window._onRemove = null;
+            window.saveChangesMessage = "This window has unsaved changes. Would you like to save?";
+            window.OnSave = null;
+            window.OnDiscard = null;
+            window.OnChanged = null;
+            window.wantsMouseMove = true;
             return window;
         }
 
@@ -48,11 +58,29 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             _selectedNodeStyle.padding = new RectOffset(12, 12, 10, 10);
         }
 
+        public override void DiscardChanges()
+        {
+            base.DiscardChanges();
+            OnDiscard?.Invoke();
+        }
+
+        private void OnDataChanged()
+        {
+            hasUnsavedChanges = true;
+            OnChanged?.Invoke();
+        }
+
+        public override void SaveChanges()
+        {
+            base.SaveChanges();
+            OnSave?.Invoke();
+        }
+
         private void OnGUI()
         {
             DrawGrid(20, 0.2f, Color.gray);
             DrawGrid(100, 0.4f, Color.gray);
-            
+
             DrawGroups();
             DrawNodes();
 
@@ -152,25 +180,23 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
         private void ProcessNodeEvents(Event e)
         {
-            if (_nodes != null)
+            if (_nodes == null) return;
+            Node changed = null;
+            for (var i = _nodes.Count - 1; i >= 0; i--)
             {
-                Node changed = null;
-                for (var i = _nodes.Count - 1; i >= 0; i--)
+                var guiChanged = _nodes[i].ProcessEvents(e);
+
+                if (guiChanged)
                 {
-                    var guiChanged = _nodes[i].ProcessEvents(e);
-
-                    if (guiChanged)
-                    {
-                        changed = _nodes[i];
-                        GUI.changed = true;
-                        break;
-                    }
+                    changed = _nodes[i];
+                    GUI.changed = true;
+                    break;
                 }
-
-                if (changed == null) return;
-                _nodes.Remove(changed);
-                _nodes.Add(changed);
             }
+
+            if (changed == null) return;
+            _nodes.Remove(changed);
+            _nodes.Add(changed);
         }
 
         private void ProcessContextMenu(Vector2 mousePosition)
@@ -186,27 +212,6 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             genericMenu.ShowAsContext();
         }
 
-        private void OnClickAddNode(Type nodeType, Vector2 mousePosition)
-        {
-            if (_nodes == null)
-            {
-                _nodes = new List<Node>();
-            }
-
-            var instance = Activator.CreateInstance(nodeType);
-
-            var method = nodeType.GetMethod("SetPosition", BindingFlags.Public | BindingFlags.Instance,
-                null,
-                CallingConventions.Any,
-                new Type[] { typeof(Vector2) },
-                null);
-            Action<Vector2> action = method == null ? null : rect => method.Invoke(instance, new object[] { rect });
-            var nodeItem = new NodeItem(instance, Vector2.zero, action);
-
-            _onCreate?.Invoke(nodeItem);
-            _nodes.Add(new Node(mousePosition, nodeItem, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode));
-        }
-
         public void SetInstancedList(NodeItem[] items)
         {
             if (_nodes == null)
@@ -217,7 +222,9 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             for (var i = 0; i < items.Length; i++)
             {
                 var item = items[i];
-                _nodes.Add(new Node(item.Position, item, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode));
+                var node = new Node(item, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode);
+                _nodes.Add(node);
+                node.OnChanged += OnDataChanged;
             }
         }
 
@@ -242,10 +249,37 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             _groups.Add(group);
         }
 
+        private void OnClickAddNode(Type nodeType, Vector2 mousePosition)
+        {
+            if (_nodes == null)
+            {
+                _nodes = new List<Node>();
+            }
+
+            var instance = Activator.CreateInstance(nodeType);
+
+            var method = nodeType.GetMethod("SetPosition", BindingFlags.Public | BindingFlags.Instance,
+                null,
+                CallingConventions.Any,
+                new Type[] { typeof(Rect) },
+                null);
+            Action<Rect> action = method == null ? null : rect => method.Invoke(instance, new object[] { rect });
+            var nodeItem = new NodeItem(instance, new Rect(mousePosition, DefaultSize), action);
+
+            _onCreate?.Invoke(nodeItem);
+            var item = new Node(nodeItem, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode);
+            item.OnChanged += OnDataChanged;
+            _nodes.Add(item);
+
+            OnDataChanged();
+        }
+
         private void OnClickRemoveNode(Node node)
         {
+            node.OnChanged -= OnDataChanged;
             _onRemove?.Invoke(node.Object);
             _nodes.Remove(node);
+            OnDataChanged();
         }
 
         public void SetOffset(Vector2 offset)

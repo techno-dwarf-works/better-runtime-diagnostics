@@ -5,13 +5,13 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class FixedUpdateTracker : IDebugInfo, IFixedUpdateableInfo
     {
-        private readonly Vector2 _position;
+        private readonly Rect _position;
         private readonly GUIContent _content;
         private readonly Texture2D _whiteTexture;
         private readonly Texture2D _blackTexture;
         private bool _wasShown;
 
-        public FixedUpdateTracker(Vector2 position, int trackerSize)
+        public FixedUpdateTracker(Rect position, int trackerSize)
         {
             _position = position;
             _content = new GUIContent();
@@ -29,7 +29,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
         public void OnGUI()
         {
             _content.image = _wasShown ? _whiteTexture : _blackTexture;
-            GUI.Label(new Rect(_position, GUI.skin.label.CalcSize(_content)), _content);
+            GUI.Label(_position, _content);
         }
 
         public void Deconstruct()

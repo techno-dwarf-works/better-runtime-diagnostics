@@ -8,12 +8,12 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class RAMUsage : IDebugInfo, IUpdateableInfo
     {
-        private readonly Vector2 _position;
+        private readonly Rect _position;
         private long _usedTotalMemory;
         private readonly GUIContent _totalContent;
         private readonly UpdateTimer _updateTimer;
 
-        public RAMUsage(Vector2 position, UpdateInterval updateInterval)
+        public RAMUsage(Rect position, UpdateInterval updateInterval)
         {
             _position = position;
             _updateTimer = new UpdateTimer(updateInterval, OnUpdate);
@@ -26,7 +26,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 
         public void OnGUI()
         {
-            GUI.Label(new Rect(_position, GUI.skin.label.CalcSize(_totalContent)), _totalContent);
+            GUI.Label(_position, _totalContent);
         }
 
         public void Deconstruct()

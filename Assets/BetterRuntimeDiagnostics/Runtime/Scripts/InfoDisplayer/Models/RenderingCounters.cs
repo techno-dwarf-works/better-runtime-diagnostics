@@ -8,7 +8,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class RenderingCounters : IDebugInfo, IUpdateableInfo
     {
-        private readonly Vector2 _position;
+        private readonly Rect _position;
         private readonly GUIContent _content;
         private int _vertexCount;
         private int _subMeshCount;
@@ -16,7 +16,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
         private Camera _mainCamera;
         private readonly UpdateTimer _updateTimer;
 
-        public RenderingCounters(Vector2 position, UpdateInterval updateInterval)
+        public RenderingCounters(Rect position, UpdateInterval updateInterval)
         {
             _position = position;
             _updateTimer = new UpdateTimer(updateInterval, OnUpdate);
@@ -29,7 +29,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 
         public void OnGUI()
         {
-            GUI.Label(new Rect(_position, GUI.skin.label.CalcSize(_content)), _content);
+            GUI.Label(_position, _content);
         }
 
         public void Deconstruct()

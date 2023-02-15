@@ -8,14 +8,15 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
     [Serializable]
     public abstract class BaseSettings : ISettings
     {
-        [SerializeField] private Vector2 position;
+        [SerializeField] private protected Rect position;
 
-        public Vector2 Position => position;
-        public void SetPosition(Vector2 rect)
+        public Rect Position => position;
+        public void SetPosition(Rect rect)
         {
             position = rect;
         }
 
         public abstract IDebugInfo GetInfo();
+        public abstract ISettings Copy();
     }
 }

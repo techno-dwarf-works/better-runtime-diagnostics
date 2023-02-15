@@ -5,7 +5,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class RealFrameCounter : BaseFrameCounter
     {
-        public RealFrameCounter(Vector2 position, UpdateInterval updateInterval) : base(position, updateInterval)
+        public RealFrameCounter(Rect position, UpdateInterval updateInterval) : base(position, updateInterval)
         {
         }
 

@@ -19,6 +19,7 @@ namespace Better.Diagnostics.EditorAddons
             { nameof(Better), nameof(Diagnostics), "Resources" };
 
         private static NodeGroup _screenGroup;
+        private static DiagnosticSettings _settings;
 
         private static string GenerateRelativePath()
         {
@@ -35,12 +36,43 @@ namespace Better.Diagnostics.EditorAddons
         {
             var instance = NodeWindow.OpenWindow();
             var settings = LoadOrCreateSettings();
-            instance.SetActions((obj) => OnCreate(obj, settings), (obj) => OnRemove(obj, settings));
+            _settings = ScriptableObject.CreateInstance<DiagnosticSettings>();
+            _settings.SetInstances(settings.GetInstances());
+            instance.SetActions(OnCreate, OnRemove);
             instance.SetMenuList(LazyGetAllInheritedType(typeof(ISettings)));
-            instance.SetInstancedList(settings.GetInstances().Select(x => new NodeItem(x, x.Position, x.SetPosition)).ToArray());
-            _screenGroup = new NodeGroup(new Rect(0,0, Screen.width, Screen.height));
+            instance.SetInstancedList(_settings.GetInstances().Select(x => new NodeItem(x, x.Position, x.SetPosition)).ToArray());
+            _screenGroup = new NodeGroup(new Rect(0, 0, Screen.width, Screen.height));
             instance.AddGroup(_screenGroup);
             instance.SetOffset(new Vector2(30, 30));
+            instance.OnSave += OnSave;
+            instance.OnChanged += OnChanged;
+            instance.OnDiscard += OnDiscard;
+        }
+
+        private static void OnChanged()
+        {
+            EditorUtility.SetDirty(_settings);
+        }
+
+        private static void OnDiscard()
+        {
+            if (_settings == null) return;
+            Object.DestroyImmediate(_settings);
+        }
+
+        private static void OnSave()
+        {
+            if (_settings == null) return;
+            if (EditorUtility.IsDirty(_settings))
+            {
+                var settings = LoadOrCreateSettings();
+                settings.SetInstances(_settings.GetInstances());
+
+                EditorUtility.SetDirty(settings);
+                AssetDatabase.SaveAssetIfDirty(settings);
+            }
+
+            Object.DestroyImmediate(_settings);
         }
 
         private static Type[] LazyGetAllInheritedType(Type baseType)
@@ -61,19 +93,19 @@ namespace Better.Diagnostics.EditorAddons
             return baseType.IsAssignableFrom(p);
         }
 
-        private static void OnRemove(NodeItem obj, DiagnosticSettings diagnosticSettings)
+        private static void OnRemove(NodeItem obj)
         {
             if (obj.InnerObject is ISettings settings)
             {
-                diagnosticSettings.Remove(settings);
+                _settings.Remove(settings);
             }
         }
 
-        private static void OnCreate(NodeItem obj, DiagnosticSettings diagnosticSettings)
+        private static void OnCreate(NodeItem obj)
         {
             if (obj.InnerObject is ISettings settings)
             {
-                diagnosticSettings.Add(settings);
+                _settings.Add(settings);
             }
         }
 

@@ -15,12 +15,12 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 
         private Thread _cpuThread;
         private float _lasCpuUsage;
-        private readonly Vector2 _position;
+        private readonly Rect _position;
         private readonly UpdateInterval _updateInterval;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly GUIContent _content;
 
-        public CPUUsage(Vector2 position, UpdateInterval updateInterval)
+        public CPUUsage(Rect position, UpdateInterval updateInterval)
         {
             _cancellationTokenSource = new CancellationTokenSource();
             _position = position;
@@ -46,7 +46,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
         public void OnGUI()
         {
             _content.text = _cpuTime.ToString("F1") + "ms";
-            GUI.Label(new Rect(_position, GUI.skin.label.CalcSize(_content)), _content);
+            GUI.Label(_position, _content);
         }
 
         public void Deconstruct()

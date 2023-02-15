@@ -6,11 +6,11 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class TimeSettings : IDebugInfo
     {
-        private readonly Vector2 _position;
+        private readonly Rect _position;
         private readonly GUIContent _content;
         private readonly GUIContent _label;
 
-        public TimeSettings(Vector2 position)
+        public TimeSettings(Rect position)
         {
             _position = position;
             _content = new GUIContent();
@@ -24,8 +24,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
         public void OnGUI()
         {
             var size = GUI.skin.label.CalcSize(_label);
-            var position = new Rect(_position, size);
-            GUI.Label(position, _label);
+            GUI.Label(_position, _label);
 
             var timeScale = Time.timeScale;
             _content.text = timeScale.ToString("F");

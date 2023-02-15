@@ -1,6 +1,7 @@
 ﻿using System;
 using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using Better.Diagnostics.Runtime.InfoDisplayer.Models;
+using Better.Diagnostics.Runtime.SettingsModule.Interfaces;
 
 namespace Better.Diagnostics.Runtime.SettingsModule.Models
 {
@@ -10,6 +11,14 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
         public override IDebugInfo GetInfo()
         {
             return new TimeSettings(Position);
+        }
+        
+        public override ISettings Copy()
+        {
+            return new TimeScaleSettings()
+            {
+                position = position
+            };
         }
     }
 }

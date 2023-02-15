@@ -33,5 +33,10 @@ namespace Better.Diagnostics.Runtime.SettingsModule
         {
             settings.Add(settingsInstance);
         }
+
+        public void SetInstances(List<ISettings> instances)
+        {
+            settings = new List<ISettings>(instances.Select(x => x.Copy()));
+        }
     }
 }

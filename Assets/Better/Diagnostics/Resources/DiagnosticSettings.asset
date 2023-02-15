@@ -13,26 +13,7 @@ MonoBehaviour:
   m_Name: DiagnosticSettings
   m_EditorClassIdentifier: 
   defaultRenderColor: {r: 1, g: 0, b: 0, a: 1}
-  settings:
-  - rid: 694170354104401925
-  - rid: 694170354104401926
-  - rid: 694170354104401927
+  settings: []
   references:
     version: 2
-    RefIds:
-    - rid: 694170354104401925
-      type: {class: CPUUsageSetting, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
-      data:
-        position: {x: 42, y: 68}
-        cpuUpdateInterval:
-          updateInterval: 0
-    - rid: 694170354104401926
-      type: {class: FixedUpdateTrackerSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
-      data:
-        position: {x: 44, y: 135.99998}
-        trackerSize: 5
-        test: 3.8
-    - rid: 694170354104401927
-      type: {class: TimeScaleSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
-      data:
-        position: {x: 43, y: 21.200016}
+    RefIds: []

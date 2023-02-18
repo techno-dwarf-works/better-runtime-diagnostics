@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Better.Diagnostics.Runtime.NodeModule;
 using Better.Extensions.Runtime;
 using UnityEditor;
 using UnityEngine;
@@ -19,8 +20,9 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         private Action<NodeItem> _onCreate;
         private Action<NodeItem> _onRemove;
 
-        public static readonly Vector2 DefaultSize = new Vector2(300, 50);
+        public static readonly Vector2 DefaultSize = new Vector2(300, EditorGUIUtility.singleLineHeight * 3f);
         private List<NodeGroup> _groups;
+        public event Action OnClosed;
         public event Action OnSave;
         public event Action OnDiscard;
         public event Action OnChanged;
@@ -138,10 +140,14 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             _drag = Vector2.zero;
             switch (e.type)
             {
-                case EventType.MouseDown:
-                    if (e.button == 1)
+                case EventType.ContextClick:
+                    ProcessContextMenu(e.mousePosition);
+                    e.Use();
+                    break;
+                case EventType.KeyDown:
+                    if ((e.control || e.keyCode == KeyCode.LeftCommand) && e.keyCode == KeyCode.S)
                     {
-                        ProcessContextMenu(e.mousePosition);
+                        SaveChanges();
                     }
 
                     break;
@@ -151,6 +157,13 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
                     {
                         OnDrag(e.delta);
                         _drag = e.delta;
+                        e.Use();
+                    }
+
+                    break;
+                case EventType.ValidateCommand:
+                    if (Event.current.commandName.FastEquals("Duplicate"))
+                    {
                     }
 
                     break;
@@ -176,6 +189,11 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             }
 
             GUI.changed = true;
+        }
+
+        private void OnDestroy()
+        {
+            OnClosed?.Invoke();
         }
 
         private void ProcessNodeEvents(Event e)
@@ -212,16 +230,15 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             genericMenu.ShowAsContext();
         }
 
-        public void SetInstancedList(NodeItem[] items)
+        public void SetInstancedList(IEnumerable<NodeItem> items)
         {
             if (_nodes == null)
             {
                 _nodes = new List<Node>();
             }
 
-            for (var i = 0; i < items.Length; i++)
+            foreach (var item in items)
             {
-                var item = items[i];
                 var node = new Node(item, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode);
                 _nodes.Add(node);
                 node.OnChanged += OnDataChanged;
@@ -258,13 +275,17 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
             var instance = Activator.CreateInstance(nodeType);
 
-            var method = nodeType.GetMethod("SetPosition", BindingFlags.Public | BindingFlags.Instance,
-                null,
-                CallingConventions.Any,
-                new Type[] { typeof(Rect) },
-                null);
-            Action<Rect> action = method == null ? null : rect => method.Invoke(instance, new object[] { rect });
-            var nodeItem = new NodeItem(instance, new Rect(mousePosition, DefaultSize), action);
+            var rect = new Rect(mousePosition, DefaultSize);
+            NodeItem nodeItem;
+            if (instance is INodeRect nodeRect)
+            {
+                nodeRect.SetRect(rect);
+                nodeItem = new NodeItem(nodeRect);
+            }
+            else
+            {
+                nodeItem = new NodeItem(instance, rect, null);
+            }
 
             _onCreate?.Invoke(nodeItem);
             var item = new Node(nodeItem, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode);

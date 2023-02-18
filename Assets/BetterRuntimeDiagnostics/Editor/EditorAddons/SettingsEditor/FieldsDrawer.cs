@@ -41,22 +41,38 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             {
                 return _fieldInfo.GetCustomAttribute<T>();
             }
+
+            public float GetHeight()
+            {
+                if (FieldType == typeof(Rect))
+                {
+                    return 0f;
+                }
+
+                var textArea = GetCustomAttribute<TextAreaAttribute>();
+                if (textArea != null)
+                {
+                    return EditorGUIUtility.singleLineHeight * textArea.maxLines;
+                }
+
+                return EditorGUIUtility.singleLineHeight;
+            }
         }
 
         private readonly FieldObject[] _fieldInfos;
 
         private static HashSet<Type> BaseTypes = new HashSet<Type>()
         {
-            typeof(int), typeof(float)
+            typeof(int), typeof(float), typeof(string)
         };
-        
+
         public event Action OnChanged;
 
         private FieldObject[] GetFields(object obj)
         {
             var type = obj.GetType();
             var t = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                .Where(x => CustomAttributeExtensions.GetCustomAttribute<SerializeField>((MemberInfo)x) != null).ToArray();
+                .Where(x => x.GetCustomAttribute<SerializeField>() != null).ToArray();
 
             var bases = t.Where(x => BaseTypes.Contains(x.FieldType)).ToArray();
 
@@ -69,16 +85,18 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
         public void Draw(Rect rect, GUIStyle nodeStyle)
         {
+            var singleLine = EditorGUIUtility.singleLineHeight;
+
             var style = EditorStyles.label;
             var labelRect = new Rect(rect);
+            labelRect.height = singleLine;
+
             var stylePadding = nodeStyle.padding;
             var styleMargin = nodeStyle.margin;
-            var singleLine = EditorGUIUtility.singleLineHeight;
             var left = stylePadding.left + styleMargin.left;
             var right = stylePadding.right + styleMargin.right;
             var line = rect.size.x - singleLine - left - right;
-            labelRect.position += new Vector2(left, stylePadding.top + styleMargin.top);
-
+            labelRect.position += new Vector2(left, stylePadding.top + styleMargin.top + singleLine);
             foreach (var fieldInfo in _fieldInfos)
             {
                 if (fieldInfo.FieldType == typeof(Rect)) continue;
@@ -88,13 +106,14 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
                 var size = style.CalcSize(fieldName);
 
                 var fieldRect = new Rect(labelRect);
-                fieldRect.position += new Vector2(singleLine + size.x, singleLine);
-                fieldRect.height = singleLine;
+                fieldRect.position += new Vector2(singleLine + size.x, 0);
                 fieldRect.width = line - size.x;
 
+                var rectHeight = fieldInfo.GetHeight();
+                fieldRect.height = rectHeight;
                 DrawField(fieldInfo, fieldRect);
 
-                labelRect.position += Vector2.up * singleLine;
+                labelRect.position += Vector2.up * (singleLine / 2f) + new Vector2(0, rectHeight);
             }
         }
 
@@ -103,7 +122,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             var value = obj.GetValue();
             using (var check = new EditorGUI.ChangeCheckScope())
             {
-                if (value is int intValue)
+                if (value.Cast<int>(out var intValue))
                 {
                     var t = EditorGUI.IntField(fieldRect, intValue);
                     if (check.changed)
@@ -111,7 +130,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
                         value = Mathf.RoundToInt(ValidateMin(obj, t));
                     }
                 }
-                else if (value is float floatValue)
+                else if (value.Cast<float>(out var floatValue))
                 {
                     var range = obj.GetCustomAttribute<RangeAttribute>();
                     var t = range == null ? EditorGUI.FloatField(fieldRect, floatValue) : EditorGUI.Slider(fieldRect, floatValue, range.min, range.max);
@@ -121,12 +140,20 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
                         value = ValidateMin(obj, t);
                     }
                 }
-
-                if (check.changed)
+                else if (value.Cast<string>(out var stringValue))
                 {
-                    obj.SetValue(value);
-                    OnChanged?.Invoke();
+                    var textArea = obj.GetCustomAttribute<TextAreaAttribute>();
+                    var t = textArea == null ? EditorGUI.TextField(fieldRect, stringValue) : EditorGUI.TextArea(fieldRect, stringValue);
+
+                    if (check.changed)
+                    {
+                        value = t;
+                    }
                 }
+
+                if (!check.changed) return;
+                obj.SetValue(value);
+                OnChanged?.Invoke();
             }
         }
 
@@ -145,8 +172,8 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
         public float GetHeight()
         {
-            return _fieldInfos.Count(x => x.GetType() != typeof(Rect)) * EditorGUIUtility.singleLineHeight;
+            var height = _fieldInfos.Sum(x => x.GetHeight());
+            return height;
         }
-
     }
 }

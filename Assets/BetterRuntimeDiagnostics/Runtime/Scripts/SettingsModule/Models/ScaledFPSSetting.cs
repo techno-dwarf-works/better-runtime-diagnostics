@@ -21,7 +21,7 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
         {
             return new ScaledFPSSetting()
             {
-                fpsUpdateInterval = fpsUpdateInterval,
+                fpsUpdateInterval = fpsUpdateInterval.Copy(),
                 position = position
             };
         }

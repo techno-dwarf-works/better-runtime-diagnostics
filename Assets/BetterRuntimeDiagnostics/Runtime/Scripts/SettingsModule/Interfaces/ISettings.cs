@@ -1,14 +1,12 @@
 ﻿using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
+using Better.Diagnostics.Runtime.NodeModule;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.SettingsModule.Interfaces
 {
-    public interface ISettings
+    public interface ISettings : INodeRect
     {
-        public Rect Position { get; }
-        public void SetPosition(Rect rect);
         public IDebugInfo GetInfo();
-
         public ISettings Copy();
     }
 }

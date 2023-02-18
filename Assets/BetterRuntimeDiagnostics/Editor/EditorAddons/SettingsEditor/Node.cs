@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Better.Diagnostics.EditorAddons.SettingsEditor
 {
-    public class Node
+    internal class Node
     {
         private readonly string _title;
         private readonly GUIStyle _defaultNodeStyle;
@@ -25,9 +25,8 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         private GUIStyle _style;
         private readonly FieldsDrawer _drawer;
         private float _resizeThickness = 10f;
+        private ResizeDrawer _resizeDrawer;
         private bool _onEdge;
-        private bool _horizontal;
-        private bool _vertical;
 
         public event Action OnChanged;
 
@@ -53,7 +52,14 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         private void DragInternal(Vector2 delta)
         {
             _rect.position += delta;
-            _nodeItem.SetPosition(_rect);
+            _nodeItem.SetRect(_rect);
+            OnDataChanged();
+        }
+
+        private void ResizeInternal(Vector2 delta)
+        {
+            _resizeDrawer?.RestrictResize(ref _rect, delta);
+            _nodeItem.SetRect(_rect);
             OnDataChanged();
         }
 
@@ -80,8 +86,11 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
             if (_isDragged || _isSelected)
             {
-                var positionRect = new Rect(absoluteRect);
-                positionRect.position += Vector2.down * (EditorGUIUtility.singleLineHeight * 2f);
+                var positionRect = new Rect(absoluteRect)
+                {
+                    height = EditorGUIUtility.singleLineHeight
+                };
+                positionRect.position += Vector2.down * EditorGUIUtility.singleLineHeight;
                 GUI.Label(positionRect, $"(x:{_rect.x}, y:{_rect.y})");
             }
 
@@ -90,24 +99,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             GUI.Box(copyRect, _title, _style);
             _drawer.Draw(absoluteRect, _style);
 
-            if (_onEdge)
-            {
-                var cursorType = MouseCursor.Orbit;
-                if (_horizontal && _vertical)
-                {
-                    cursorType = MouseCursor.ScaleArrow;
-                }
-                else if (_horizontal)
-                {
-                    cursorType = MouseCursor.ResizeHorizontal;
-                }
-                else if (_vertical)
-                {
-                    cursorType = MouseCursor.ResizeVertical;
-                }
-
-                EditorGUIUtility.AddCursorRect(copyRect, cursorType);
-            }
+            _resizeDrawer?.DrawCursor(copyRect);
         }
 
         private Rect AbsoluteRect()
@@ -123,63 +115,106 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             switch (e.type)
             {
                 case EventType.MouseDown:
-                    if (e.button == 0)
-                    {
-                        if (absoluteRect.Contains(mousePosition))
-                        {
-                            _isDragged = true;
-                            GUI.changed = true;
-                            _isSelected = true;
-                            _style = _selectedNodeStyle;
-                            return true;
-                        }
-
-                        GUI.changed = true;
-                        _isSelected = false;
-                        _style = _defaultNodeStyle;
-                    }
-                    else if (e.button == 1 && _isSelected && absoluteRect.Contains(mousePosition))
-                    {
-                        ProcessContextMenu();
-                        e.Use();
-                        return true;
-                    }
-
-                    break;
+                    return MouseDownProcessEvents(e, absoluteRect, mousePosition);
 
                 case EventType.MouseUp:
                     _isDragged = false;
                     break;
 
                 case EventType.MouseDrag:
-                    if (e.button == 0 && _isDragged)
-                    {
-                        DragInternal(e.delta);
-                        e.Use();
-                        return true;
-                    }
+                    return MouseDragProcessEvents(e);
 
-                    break;
                 case EventType.MouseMove:
-
-
-                    var maxRect = Rect.MinMaxRect(absoluteRect.xMin - _resizeThickness, absoluteRect.yMin - _resizeThickness,
-                        absoluteRect.xMax + _resizeThickness, absoluteRect.yMax + _resizeThickness);
-                    var minRect = Rect.MinMaxRect(absoluteRect.xMin + _resizeThickness, absoluteRect.yMin + _resizeThickness,
-                        absoluteRect.xMax - _resizeThickness, absoluteRect.yMax - _resizeThickness);
-
-                    var leftEdge = Rect.MinMaxRect(maxRect.xMin, maxRect.yMin, minRect.xMin, maxRect.yMax);
-                    var rightEdge = Rect.MinMaxRect(minRect.xMax, maxRect.yMin, maxRect.xMax, maxRect.yMax);
-                    var topEdge = Rect.MinMaxRect(maxRect.xMin, maxRect.yMin, maxRect.xMax, minRect.yMin);
-                    var botEdge = Rect.MinMaxRect(maxRect.xMin, minRect.yMax, maxRect.xMax, maxRect.yMax);
-
-                    _onEdge = maxRect.Contains(mousePosition) && !minRect.Contains(mousePosition);
-                    _horizontal = leftEdge.Contains(mousePosition) || rightEdge.Contains(mousePosition);
-                    _vertical = topEdge.Contains(mousePosition) || botEdge.Contains(mousePosition);
-                    return true;
+                    return ResizeProcessEvents(absoluteRect, mousePosition);
             }
 
             return false;
+        }
+
+        private bool MouseDownProcessEvents(Event e, Rect absoluteRect, Vector2 mousePosition)
+        {
+            if (e.button == 0)
+            {
+                if (absoluteRect.Contains(mousePosition))
+                {
+                    _isDragged = true;
+                    GUI.changed = true;
+                    _isSelected = true;
+                    _style = _selectedNodeStyle;
+                    return true;
+                }
+
+                GUI.changed = true;
+                _isSelected = false;
+                _style = _defaultNodeStyle;
+            }
+            else if (e.button == 1 && _isSelected && absoluteRect.Contains(mousePosition))
+            {
+                ProcessContextMenu();
+                e.Use();
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool MouseDragProcessEvents(Event e)
+        {
+            if (e.button == 0)
+            {
+                if (_isDragged)
+                {
+                    if (_onEdge)
+                    {
+                        ResizeInternal(e.delta);
+                    }
+                    else
+                    {
+                        DragInternal(e.delta);
+                    }
+
+                    e.Use();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool ResizeProcessEvents(Rect absoluteRect, Vector2 mousePosition)
+        {
+            var maxRect = Rect.MinMaxRect(absoluteRect.xMin - _resizeThickness, absoluteRect.yMin - _resizeThickness,
+                absoluteRect.xMax + _resizeThickness, absoluteRect.yMax + _resizeThickness);
+            var minRect = Rect.MinMaxRect(absoluteRect.xMin + _resizeThickness, absoluteRect.yMin + _resizeThickness,
+                absoluteRect.xMax - _resizeThickness, absoluteRect.yMax - _resizeThickness);
+
+            var leftEdge = Rect.MinMaxRect(maxRect.xMin, maxRect.yMin, minRect.xMin, maxRect.yMax);
+            var rightEdge = Rect.MinMaxRect(minRect.xMax, maxRect.yMin, maxRect.xMax, maxRect.yMax);
+            var topEdge = Rect.MinMaxRect(maxRect.xMin, maxRect.yMin, maxRect.xMax, minRect.yMin);
+            var botEdge = Rect.MinMaxRect(maxRect.xMin, minRect.yMax, maxRect.xMax, maxRect.yMax);
+
+            _onEdge = maxRect.Contains(mousePosition) && !minRect.Contains(mousePosition);
+            if (!_onEdge)
+            {
+                if (_resizeDrawer == null) return false;
+                _resizeDrawer = null;
+                return true;
+            }
+
+            if (_resizeDrawer == null)
+            {
+                _resizeDrawer = new ResizeDrawer();
+            }
+
+
+            var left = leftEdge.Contains(mousePosition);
+            var right = rightEdge.Contains(mousePosition);
+            var top = topEdge.Contains(mousePosition);
+            var bot = botEdge.Contains(mousePosition);
+
+            _resizeDrawer.Corners(left, right, top, bot);
+
+            return true;
         }
     }
 }

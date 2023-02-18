@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Better.Diagnostics.Runtime.SettingsModule.Models
 {
     [Serializable]
-    public class RamUsageSettings : BaseSettings
+    public class RAMUsageSettings : BaseSettings
     {
         [Tooltip("In which interval should the RAM usage be updated?")] [SerializeField]
         private UpdateInterval ramUpdateInterval = 0.5f;
@@ -19,9 +19,9 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
         
         public override ISettings Copy()
         {
-            return new RamUsageSettings()
+            return new RAMUsageSettings()
             {
-                ramUpdateInterval = ramUpdateInterval,
+                ramUpdateInterval = ramUpdateInterval.Copy(),
                 position = position
             };
         }

@@ -13,7 +13,63 @@ MonoBehaviour:
   m_Name: DiagnosticSettings
   m_EditorClassIdentifier: 
   defaultRenderColor: {r: 1, g: 0, b: 0, a: 1}
-  settings: []
+  settings:
+  - rid: 694170473352396912
+  - rid: 694170473352396913
+  - rid: 694170473352396914
+  - rid: 694170473352396915
+  - rid: 694170473352396916
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 694170473352396912
+      type: {class: RAMUsageSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position:
+          serializedVersion: 2
+          x: 9
+          y: 4.9999886
+          width: 187
+          height: 57.999996
+        ramUpdateInterval:
+          updateInterval: 1.5
+    - rid: 694170473352396913
+      type: {class: RealFPSSetting, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position:
+          serializedVersion: 2
+          x: 0
+          y: 304
+          width: 300
+          height: 54
+        fpsUpdateInterval:
+          updateInterval: 1
+    - rid: 694170473352396914
+      type: {class: FixedUpdateTrackerSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position:
+          serializedVersion: 2
+          x: 246
+          y: 11.000004
+          width: 146
+          height: 54
+        trackerSize: 10
+    - rid: 694170473352396915
+      type: {class: TimeScaleSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position:
+          serializedVersion: 2
+          x: 268
+          y: 230.00002
+          width: 148
+          height: 54
+    - rid: 694170473352396916
+      type: {class: FixedUpdateTrackerSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position:
+          serializedVersion: 2
+          x: 31
+          y: 129.2
+          width: 156
+          height: 68
+        trackerSize: 5

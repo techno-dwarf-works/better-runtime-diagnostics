@@ -1,4 +1,5 @@
 ﻿using System;
+using Better.Diagnostics.Runtime.NodeModule;
 using UnityEngine;
 
 namespace Better.Diagnostics.EditorAddons.SettingsEditor
@@ -9,7 +10,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         public object InnerObject { get; }
         public Rect Position { get; private set; }
 
-        public void SetPosition(Rect rect)
+        public void SetRect(Rect rect)
         {
             Position = rect;
             _rectChanged?.Invoke(rect);
@@ -26,6 +27,10 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             }
 
             Position = position;
+        }
+
+        public NodeItem(INodeRect innerObject) : this(innerObject, innerObject.Position, innerObject.SetRect)
+        {
         }
     }
 }

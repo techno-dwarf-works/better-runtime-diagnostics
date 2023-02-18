@@ -40,13 +40,22 @@ namespace Better.Diagnostics.EditorAddons
             _settings.SetInstances(settings.GetInstances());
             instance.SetActions(OnCreate, OnRemove);
             instance.SetMenuList(LazyGetAllInheritedType(typeof(ISettings)));
-            instance.SetInstancedList(_settings.GetInstances().Select(x => new NodeItem(x, x.Position, x.SetPosition)).ToArray());
+            instance.SetInstancedList(_settings.GetInstances().Select(x => new NodeItem(x)));
             _screenGroup = new NodeGroup(new Rect(0, 0, Screen.width, Screen.height));
             instance.AddGroup(_screenGroup);
             instance.SetOffset(new Vector2(30, 30));
             instance.OnSave += OnSave;
             instance.OnChanged += OnChanged;
             instance.OnDiscard += OnDiscard;
+            instance.OnClosed += OnClosed;
+        }
+
+        private static void OnClosed()
+        {
+            if (_settings != null)
+            {
+                Object.DestroyImmediate(_settings);
+            }
         }
 
         private static void OnChanged()
@@ -71,8 +80,6 @@ namespace Better.Diagnostics.EditorAddons
                 EditorUtility.SetDirty(settings);
                 AssetDatabase.SaveAssetIfDirty(settings);
             }
-
-            Object.DestroyImmediate(_settings);
         }
 
         private static Type[] LazyGetAllInheritedType(Type baseType)

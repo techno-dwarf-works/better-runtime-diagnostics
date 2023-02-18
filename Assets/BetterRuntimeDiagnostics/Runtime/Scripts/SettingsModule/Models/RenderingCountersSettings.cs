@@ -21,7 +21,7 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
         {
             return new RenderingCountersSettings()
             {
-                renderingUpdateInterval = renderingUpdateInterval,
+                renderingUpdateInterval = renderingUpdateInterval.Copy(),
                 position = position
             };
         }

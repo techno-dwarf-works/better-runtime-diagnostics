@@ -21,7 +21,7 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
         {
             return new CPUUsageSetting()
             {
-                cpuUpdateInterval = cpuUpdateInterval,
+                cpuUpdateInterval = cpuUpdateInterval.Copy(),
                 position = position
             };
         }

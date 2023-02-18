@@ -11,7 +11,7 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
         [SerializeField] private protected Rect position;
 
         public Rect Position => position;
-        public void SetPosition(Rect rect)
+        public void SetRect(Rect rect)
         {
             position = rect;
         }

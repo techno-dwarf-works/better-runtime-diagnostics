@@ -16,11 +16,24 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
             updateInterval = interval;
         }
 
+        public UpdateInterval()
+        {
+            
+        }
+
+        public UpdateInterval(float value)
+        {
+            updateInterval = value;
+        }
+
+        public UpdateInterval Copy()
+        {
+            return new UpdateInterval(updateInterval);
+        }
+        
         public static implicit operator UpdateInterval(float value)
         {
-            var interval = new UpdateInterval();
-            interval.SetInterval(value);
-            return interval;
+            return new UpdateInterval(value);
         }
     }
 }

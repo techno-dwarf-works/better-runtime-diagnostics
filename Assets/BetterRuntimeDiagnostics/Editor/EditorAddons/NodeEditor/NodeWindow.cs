@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using Better.Diagnostics.EditorAddons.NodeEditor.Models;
 using Better.Diagnostics.Runtime.NodeModule;
 using Better.Extensions.Runtime;
 using UnityEditor;
 using UnityEngine;
 
-namespace Better.Diagnostics.EditorAddons.SettingsEditor
+namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
     public class NodeWindow : EditorWindow
     {
@@ -21,6 +21,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         private Action<NodeItem> _onRemove;
 
         public static readonly Vector2 DefaultSize = new Vector2(300, EditorGUIUtility.singleLineHeight * 3f);
+        public static readonly Vector2 MinSize = new Vector2(150, EditorGUIUtility.singleLineHeight * 3f);
         private List<NodeGroup> _groups;
         public event Action OnClosed;
         public event Action OnSave;

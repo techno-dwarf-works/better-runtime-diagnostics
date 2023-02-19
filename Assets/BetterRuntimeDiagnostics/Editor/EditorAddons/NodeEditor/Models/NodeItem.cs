@@ -2,13 +2,15 @@
 using Better.Diagnostics.Runtime.NodeModule;
 using UnityEngine;
 
-namespace Better.Diagnostics.EditorAddons.SettingsEditor
+namespace Better.Diagnostics.EditorAddons.NodeEditor.Models
 {
     public class NodeItem
     {
         private readonly Action<Rect> _rectChanged;
         public object InnerObject { get; }
         public Rect Position { get; private set; }
+
+        public bool IsNodeRect { get; } = false;
 
         public void SetRect(Rect rect)
         {
@@ -31,6 +33,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
         public NodeItem(INodeRect innerObject) : this(innerObject, innerObject.Position, innerObject.SetRect)
         {
+            IsNodeRect = true;
         }
     }
 }

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Better.Diagnostics.EditorAddons.SettingsEditor;
+using Better.Diagnostics.EditorAddons.NodeEditor;
+using Better.Diagnostics.EditorAddons.NodeEditor.Models;
+using Better.Diagnostics.Runtime.NodeModule;
 using Better.Diagnostics.Runtime.SettingsModule;
 using Better.Diagnostics.Runtime.SettingsModule.Interfaces;
 using UnityEditor;
@@ -40,7 +42,8 @@ namespace Better.Diagnostics.EditorAddons
             _settings.SetInstances(settings.GetInstances());
             instance.SetActions(OnCreate, OnRemove);
             instance.SetMenuList(LazyGetAllInheritedType(typeof(ISettings)));
-            instance.SetInstancedList(_settings.GetInstances().Select(x => new NodeItem(x)));
+            List<NodeItem> list = new List<NodeItem>();
+            NewMethod(list, instance);
             _screenGroup = new NodeGroup(new Rect(0, 0, Screen.width, Screen.height));
             instance.AddGroup(_screenGroup);
             instance.SetOffset(new Vector2(30, 30));
@@ -48,6 +51,23 @@ namespace Better.Diagnostics.EditorAddons
             instance.OnChanged += OnChanged;
             instance.OnDiscard += OnDiscard;
             instance.OnClosed += OnClosed;
+        }
+
+        private static void NewMethod(List<NodeItem> list, NodeWindow instance)
+        {
+            foreach (var x in _settings.GetInstances())
+            {
+                if(x is INodeRect nodeRect)
+                {
+                    list.Add(new NodeItem(nodeRect));
+                }
+                else
+                {
+                    list.Add(new NodeItem(x, Rect.zero, null));
+                }
+            }
+
+            instance.SetInstancedList(list.ToArray());
         }
 
         private static void OnClosed()

@@ -1,7 +1,6 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
 
-namespace Better.Diagnostics.EditorAddons.SettingsEditor
+namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
     public class NodeGroup
     {

@@ -1,9 +1,10 @@
 ﻿using System;
+using Better.Diagnostics.EditorAddons.NodeEditor.Models;
 using Better.Extensions.Runtime;
 using UnityEditor;
 using UnityEngine;
 
-namespace Better.Diagnostics.EditorAddons.SettingsEditor
+namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
     internal class Node
     {
@@ -23,9 +24,10 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
         private bool _isSelected;
 
         private GUIStyle _style;
-        private readonly FieldsDrawer _drawer;
         private float _resizeThickness = 10f;
-        private ResizeDrawer _resizeDrawer;
+        private NodeResizeDrawer _nodeResizeDrawer;
+        private readonly NodeFieldsDrawer _drawer;
+        private readonly GUIContent _content;
         private bool _onEdge;
 
         public event Action OnChanged;
@@ -35,13 +37,15 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             _nodeItem = nodeItem;
             var type = _nodeItem.InnerObject.GetType();
             _title = type.Name.PrettyCamelCase();
-            _drawer = new FieldsDrawer(nodeItem.InnerObject);
+
+            _drawer = new NodeFieldsDrawer(type, nodeItem.InnerObject, false);
             _drawer.OnChanged += OnDataChanged;
             _rect = nodeItem.Position;
             _style = nodeStyle;
             _defaultNodeStyle = nodeStyle;
             _selectedNodeStyle = selectedStyle;
             _onRemoveNode = onClickRemoveNode;
+            _content = new GUIContent();
         }
 
         private void OnDataChanged()
@@ -58,7 +62,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
         private void ResizeInternal(Vector2 delta)
         {
-            _resizeDrawer?.RestrictResize(ref _rect, delta);
+            _nodeResizeDrawer?.RestrictResize(ref _rect, delta);
             _nodeItem.SetRect(_rect);
             OnDataChanged();
         }
@@ -86,12 +90,14 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
 
             if (_isDragged || _isSelected)
             {
+                _content.text = ($"(x:{_rect.x}, y:{_rect.y})");
+                var size = EditorStyles.label.CalcSize(_content);
                 var positionRect = new Rect(absoluteRect)
                 {
-                    height = EditorGUIUtility.singleLineHeight
+                    size = size
                 };
                 positionRect.position += Vector2.down * EditorGUIUtility.singleLineHeight;
-                GUI.Label(positionRect, $"(x:{_rect.x}, y:{_rect.y})");
+                GUI.Label(positionRect, _content);
             }
 
             var copyRect = new Rect(absoluteRect);
@@ -99,7 +105,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             GUI.Box(copyRect, _title, _style);
             _drawer.Draw(absoluteRect, _style);
 
-            _resizeDrawer?.DrawCursor(copyRect);
+            _nodeResizeDrawer?.DrawCursor(copyRect);
         }
 
         private Rect AbsoluteRect()
@@ -196,14 +202,14 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             _onEdge = maxRect.Contains(mousePosition) && !minRect.Contains(mousePosition);
             if (!_onEdge)
             {
-                if (_resizeDrawer == null) return false;
-                _resizeDrawer = null;
+                if (_nodeResizeDrawer == null) return false;
+                _nodeResizeDrawer = null;
                 return true;
             }
 
-            if (_resizeDrawer == null)
+            if (_nodeResizeDrawer == null)
             {
-                _resizeDrawer = new ResizeDrawer();
+                _nodeResizeDrawer = new NodeResizeDrawer();
             }
 
 
@@ -212,7 +218,7 @@ namespace Better.Diagnostics.EditorAddons.SettingsEditor
             var top = topEdge.Contains(mousePosition);
             var bot = botEdge.Contains(mousePosition);
 
-            _resizeDrawer.Corners(left, right, top, bot);
+            _nodeResizeDrawer.Corners(left, right, top, bot);
 
             return true;
         }

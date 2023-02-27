@@ -42,9 +42,10 @@ namespace Better.Diagnostics.EditorAddons
             _settings.SetInstances(settings.GetInstances());
             instance.SetActions(OnCreate, OnRemove);
             instance.SetMenuList(LazyGetAllInheritedType(typeof(ISettings)));
-            List<NodeItem> list = new List<NodeItem>();
-            NewMethod(list, instance);
-            _screenGroup = new NodeGroup(new Rect(0, 0, Screen.width, Screen.height));
+            _screenGroup = new NodeGroup("Screen Group",new Rect(0, 0, Screen.width, Screen.height), NodeStyles.BoxStyle);
+            var items = GetItems();
+            _screenGroup.SetNodeItems(items.Item1);
+            instance.SetSideList(items.Item2);
             instance.AddGroup(_screenGroup);
             instance.SetOffset(new Vector2(30, 30));
             instance.OnSave += OnSave;
@@ -53,13 +54,15 @@ namespace Better.Diagnostics.EditorAddons
             instance.OnClosed += OnClosed;
         }
 
-        private static void NewMethod(List<NodeItem> list, NodeWindow instance)
+        private static (List<NodeItem>, List<NodeItem>) GetItems()
         {
+            var rectList = new List<NodeItem>();
+            var list = new List<NodeItem>();
             foreach (var x in _settings.GetInstances())
             {
-                if(x is INodeRect nodeRect)
+                if (x is INodeRect nodeRect)
                 {
-                    list.Add(new NodeItem(nodeRect));
+                    rectList.Add(new NodeItem(nodeRect));
                 }
                 else
                 {
@@ -67,7 +70,7 @@ namespace Better.Diagnostics.EditorAddons
                 }
             }
 
-            instance.SetInstancedList(list.ToArray());
+            return new ValueTuple<List<NodeItem>, List<NodeItem>>(rectList, list);
         }
 
         private static void OnClosed()
@@ -120,17 +123,17 @@ namespace Better.Diagnostics.EditorAddons
             return baseType.IsAssignableFrom(p);
         }
 
-        private static void OnRemove(NodeItem obj)
+        private static void OnRemove(object obj)
         {
-            if (obj.InnerObject is ISettings settings)
+            if (obj is ISettings settings)
             {
                 _settings.Remove(settings);
             }
         }
 
-        private static void OnCreate(NodeItem obj)
+        private static void OnCreate(object obj)
         {
-            if (obj.InnerObject is ISettings settings)
+            if (obj is ISettings settings)
             {
                 _settings.Add(settings);
             }

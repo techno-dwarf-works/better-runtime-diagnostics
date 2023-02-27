@@ -12,8 +12,6 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
         [Tooltip("In which interval should the CPU usage be updated?")] [SerializeField]
         private UpdateInterval cpuUpdateInterval = 0.5f;
         
-        [SerializeField] private GameObject prefab;
-
         public override IDebugInfo GetInfo()
         {
             return new CPUUsage(Position, cpuUpdateInterval);
@@ -24,8 +22,7 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
             return new CPUUsageSetting()
             {
                 cpuUpdateInterval = cpuUpdateInterval.Copy(),
-                position = position,
-                prefab = prefab
+                position = position
             };
         }
     }

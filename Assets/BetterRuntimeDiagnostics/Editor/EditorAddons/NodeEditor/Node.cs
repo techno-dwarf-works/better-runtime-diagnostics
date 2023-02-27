@@ -1,82 +1,36 @@
-﻿using System;
-using Better.Diagnostics.EditorAddons.NodeEditor.Models;
-using Better.Extensions.Runtime;
+﻿using Better.Diagnostics.EditorAddons.NodeEditor.Models;
 using UnityEditor;
 using UnityEngine;
 
 namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
-    internal class Node
+    internal class Node : BaseNode
     {
-        private readonly string _title;
-        private readonly GUIStyle _defaultNodeStyle;
-        private readonly GUIStyle _selectedNodeStyle;
-
-        private readonly Action<Node> _onRemoveNode;
-
-        private readonly NodeItem _nodeItem;
-
-        public NodeItem Object => _nodeItem;
-
-        private Rect _rect;
         private Rect _relativeDrag;
         private bool _isDragged;
-        private bool _isSelected;
 
         private GUIStyle _style;
         private float _resizeThickness = 10f;
         private NodeResizeDrawer _nodeResizeDrawer;
-        private readonly NodeFieldsDrawer _drawer;
         private readonly GUIContent _content;
         private bool _onEdge;
 
-        public event Action OnChanged;
-
-        public Node(NodeItem nodeItem, GUIStyle nodeStyle, GUIStyle selectedStyle, Action<Node> onClickRemoveNode)
-        {
-            _nodeItem = nodeItem;
-            var type = _nodeItem.InnerObject.GetType();
-            _title = type.Name.PrettyCamelCase();
-
-            _drawer = new NodeFieldsDrawer(type, nodeItem.InnerObject, false);
-            _drawer.OnChanged += OnDataChanged;
-            _rect = nodeItem.Position;
-            _style = nodeStyle;
-            _defaultNodeStyle = nodeStyle;
-            _selectedNodeStyle = selectedStyle;
-            _onRemoveNode = onClickRemoveNode;
-            _content = new GUIContent();
-        }
-
-        private void OnDataChanged()
-        {
-            OnChanged?.Invoke();
-        }
-
         private void DragInternal(Vector2 delta)
         {
-            _rect.position += delta;
-            _nodeItem.SetRect(_rect);
+            var rect = base.AbsoluteRect();
+            rect.position += delta;
+            _nodeItem.SetRect(rect);
+            SetRect(rect);
             OnDataChanged();
         }
 
         private void ResizeInternal(Vector2 delta)
         {
-            _nodeResizeDrawer?.RestrictResize(ref _rect, delta);
-            _nodeItem.SetRect(_rect);
+            var baseRect = base.AbsoluteRect();
+            _nodeResizeDrawer?.RestrictResize(ref baseRect, delta, GetHeight());
+            _nodeItem.SetRect(baseRect);
+            SetRect(baseRect);
             OnDataChanged();
-        }
-
-        private void ProcessContextMenu()
-        {
-            var genericMenu = new GenericMenu();
-            genericMenu.AddItem(new GUIContent("Remove node"), false, OnClickRemoveNode);
-            genericMenu.ShowAsContext();
-        }
-
-        private void OnClickRemoveNode()
-        {
-            _onRemoveNode?.Invoke(this);
         }
 
         public void Drag(Vector2 delta)
@@ -84,14 +38,16 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             _relativeDrag.position += delta;
         }
 
-        public void Draw()
+        public override void Draw()
         {
             var absoluteRect = AbsoluteRect();
 
             if (_isDragged || _isSelected)
             {
-                _content.text = ($"(x:{_rect.x}, y:{_rect.y})");
+                var baseRect = base.AbsoluteRect();
+                _content.text = $"(x:{baseRect.x}, y:{baseRect.y})";
                 var size = EditorStyles.label.CalcSize(_content);
+                size.x += EditorGUIUtility.singleLineHeight;
                 var positionRect = new Rect(absoluteRect)
                 {
                     size = size
@@ -100,29 +56,21 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 GUI.Label(positionRect, _content);
             }
 
-            var copyRect = new Rect(absoluteRect);
-            copyRect.height += _drawer.GetHeight();
-            GUI.Box(copyRect, _title, _style);
-            _drawer.Draw(absoluteRect, _style);
-
-            _nodeResizeDrawer?.DrawCursor(copyRect);
+            base.Draw();
+            
+            _nodeResizeDrawer?.DrawCursor(absoluteRect);
         }
 
-        private Rect AbsoluteRect()
+        public override Rect AbsoluteRect()
         {
-            return new Rect(_rect.position + _relativeDrag.position, _rect.size + _relativeDrag.size);
+            var rect = base.AbsoluteRect();
+            return new Rect(rect.position + _relativeDrag.position, rect.size + _relativeDrag.size);
         }
 
-        public bool ProcessEvents(Event e)
+        private protected override bool ProcessOthers(Event e, Rect absoluteRect, Vector2 mousePosition)
         {
-            var absoluteRect = AbsoluteRect();
-            absoluteRect.height += _drawer.GetHeight();
-            var mousePosition = e.mousePosition;
             switch (e.type)
             {
-                case EventType.MouseDown:
-                    return MouseDownProcessEvents(e, absoluteRect, mousePosition);
-
                 case EventType.MouseUp:
                     _isDragged = false;
                     break;
@@ -137,33 +85,12 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             return false;
         }
 
-        private bool MouseDownProcessEvents(Event e, Rect absoluteRect, Vector2 mousePosition)
+        private protected override void OnSelect()
         {
-            if (e.button == 0)
-            {
-                if (absoluteRect.Contains(mousePosition))
-                {
-                    _isDragged = true;
-                    GUI.changed = true;
-                    _isSelected = true;
-                    _style = _selectedNodeStyle;
-                    return true;
-                }
-
-                GUI.changed = true;
-                _isSelected = false;
-                _style = _defaultNodeStyle;
-            }
-            else if (e.button == 1 && _isSelected && absoluteRect.Contains(mousePosition))
-            {
-                ProcessContextMenu();
-                e.Use();
-                return true;
-            }
-
-            return false;
+            _isDragged = true;
+            base.OnSelect();
         }
-
+        
         private bool MouseDragProcessEvents(Event e)
         {
             if (e.button == 0)
@@ -211,8 +138,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             {
                 _nodeResizeDrawer = new NodeResizeDrawer();
             }
-
-
+            
             var left = leftEdge.Contains(mousePosition);
             var right = rightEdge.Contains(mousePosition);
             var top = topEdge.Contains(mousePosition);
@@ -221,6 +147,11 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             _nodeResizeDrawer.Corners(left, right, top, bot);
 
             return true;
+        }
+
+        public Node(NodeItem nodeItem, GUIStyle nodeStyle, GUIStyle selectedStyle) : base(nodeItem, nodeStyle, selectedStyle)
+        {
+            _content = new GUIContent();
         }
     }
 }

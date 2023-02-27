@@ -6,7 +6,18 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
     public class NodeResizeDrawer
     {
+        [Flags]
+        private enum ResizeDirection
+        {
+            None = 0,
+            Top = 1,
+            Bottom = 2,
+            Left = 4,
+            Right = 8
+        }
+
         private MouseCursor _cursor;
+
         private ResizeDirection _direction;
 
         private void SetCursor(MouseCursor cursor)
@@ -14,12 +25,13 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             _cursor = cursor;
         }
 
-        public void RestrictResize(ref Rect rect, Vector2 delta)
+        public void RestrictResize(ref Rect rect, Vector2 delta, float height)
         {
             ResizeInternal(ref rect, delta);
-            var defaultSize = NodeWindow.MinSize;
-            if (rect.height < defaultSize.y)
-                rect.height = defaultSize.y;
+            var defaultSize = NodeStyles.MinSize;
+            var sizeY = defaultSize.y + height;
+            if (rect.height < sizeY)
+                rect.height = sizeY;
 
             if (rect.width < defaultSize.x)
                 rect.width = defaultSize.x;
@@ -46,16 +58,6 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             {
                 rect.xMin += delta.x;
             }
-        }
-
-        [Flags]
-        private enum ResizeDirection
-        {
-            None = 0,
-            Top = 1,
-            Bottom = 2,
-            Left = 4,
-            Right = 8
         }
 
         private ResizeDirection GetResizeDirection(bool left, bool right, bool top, bool bot)

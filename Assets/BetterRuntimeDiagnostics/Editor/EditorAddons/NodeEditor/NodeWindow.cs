@@ -10,55 +10,40 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
     public class NodeWindow : EditorWindow
     {
-        private List<Node> _nodes;
+        private Vector2 _lastWindowSize;
 
-        private GUIStyle _nodeStyle;
-        private GUIStyle _selectedNodeStyle;
         private Vector2 _drag;
         private Vector2 _offset;
         private Type[] _menuList;
-        private Action<NodeItem> _onCreate;
-        private Action<NodeItem> _onRemove;
-
-        public static readonly Vector2 DefaultSize = new Vector2(300, EditorGUIUtility.singleLineHeight * 3f);
-        public static readonly Vector2 MinSize = new Vector2(150, EditorGUIUtility.singleLineHeight * 3f);
+        private Action<object> _onCreate;
+        private Action<object> _onRemove;
         private List<NodeGroup> _groups;
         public event Action OnClosed;
         public event Action OnSave;
         public event Action OnDiscard;
         public event Action OnChanged;
 
+        private NodeGroup _generalGroup;
+        private List<BaseNode> _sideNodes;
+
         public static NodeWindow OpenWindow()
         {
             var window = GetWindow<NodeWindow>();
             window.titleContent = new GUIContent("Node Based Editor");
             window._menuList = null;
-            window._nodes = null;
             window._onCreate = null;
             window._onRemove = null;
             window.saveChangesMessage = "This window has unsaved changes. Would you like to save?";
             window.OnSave = null;
             window.OnDiscard = null;
             window.OnChanged = null;
+            window._sideNodes = null;
             window.wantsMouseMove = true;
+            window._generalGroup = new NodeGroup("General Group", new Rect(Vector2.zero, window.position.size), GUIStyle.none);
+            window._generalGroup.OnRemove += window.OnRemove;
+            window._generalGroup.DataChanged += window.OnDataChanged;
+            window._groups = null;
             return window;
-        }
-
-        private void Awake()
-        {
-            _nodeStyle = new GUIStyle(EditorStyles.helpBox);
-            _nodeStyle.normal.textColor = Color.white;
-            _nodeStyle.hover.textColor = Color.white;
-            _nodeStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D;
-            _nodeStyle.border = new RectOffset(12, 12, 12, 12);
-            _nodeStyle.padding = new RectOffset(12, 12, 10, 10);
-
-            _selectedNodeStyle = new GUIStyle(EditorStyles.helpBox);
-            _selectedNodeStyle.normal.textColor = Color.white;
-            _selectedNodeStyle.hover.textColor = Color.white;
-            _selectedNodeStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D;
-            _selectedNodeStyle.border = new RectOffset(12, 12, 12, 12);
-            _selectedNodeStyle.padding = new RectOffset(12, 12, 10, 10);
         }
 
         public override void DiscardChanges()
@@ -81,13 +66,17 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 
         private void OnGUI()
         {
+            if (_lastWindowSize != position.size)
+            {
+                _generalGroup.SetRect(new Rect(Vector2.zero, position.size));
+                _lastWindowSize = position.size;
+            }
+
             DrawGrid(20, 0.2f, Color.gray);
             DrawGrid(100, 0.4f, Color.gray);
 
-            DrawGroups();
-            DrawNodes();
+            Draw();
 
-            ProcessNodeEvents(Event.current);
             ProcessEvents(Event.current);
 
             if (GUI.changed) Repaint();
@@ -118,52 +107,58 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             Handles.EndGUI();
         }
 
-        private void DrawNodes()
+        private void Draw()
         {
-            if (_nodes == null) return;
-            for (var i = 0; i < _nodes.Count; i++)
+            if (_groups != null)
             {
-                _nodes[i].Draw();
+                for (var i = 0; i < _groups.Count; i++)
+                {
+                    _groups[i].Draw();
+                }
             }
-        }
 
-        private void DrawGroups()
-        {
-            if (_groups == null) return;
-            for (var i = 0; i < _groups.Count; i++)
+            _generalGroup?.Draw();
+
+            if (_sideNodes != null)
             {
-                _groups[i].Draw();
+                for (var i = 0; i < _sideNodes.Count; i++)
+                {
+                    var node = _sideNodes[i];
+                    var drawRect = node.AbsoluteRect();
+                    if (i - 1 > 0)
+                    {
+                        var prevHeight = _sideNodes[i - 1].GetHeight();
+                        drawRect.height = prevHeight;
+                    }
+
+                    node.SetRect(drawRect);
+                    node.Draw();
+                }
             }
         }
 
         private void ProcessEvents(Event e)
         {
+            _generalGroup?.ProcessEvents(e);
+
+            if (ProcessSideNotes(e)) return;
+
+            if (ProcessGroups(e)) return;
+
             _drag = Vector2.zero;
             switch (e.type)
             {
                 case EventType.ContextClick:
-                    ProcessContextMenu(e.mousePosition);
-                    e.Use();
+                    ProcessContextMenu(e);
                     break;
                 case EventType.KeyDown:
-                    if ((e.control || e.keyCode == KeyCode.LeftCommand) && e.keyCode == KeyCode.S)
-                    {
-                        SaveChanges();
-                    }
-
+                    ProcessKeyDown(e);
                     break;
-
                 case EventType.MouseDrag:
-                    if (e.button == 0)
-                    {
-                        OnDrag(e.delta);
-                        _drag = e.delta;
-                        e.Use();
-                    }
-
+                    ProcessDrag(e);
                     break;
                 case EventType.ValidateCommand:
-                    if (Event.current.commandName.FastEquals("Duplicate"))
+                    if (e.commandName.FastEquals("Duplicate"))
                     {
                     }
 
@@ -171,82 +166,110 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             }
         }
 
-        private void OnDrag(Vector2 delta)
+        private void ProcessKeyDown(Event e)
         {
-            if (_nodes != null)
+            if ((e.control || e.keyCode == KeyCode.LeftCommand) && e.keyCode == KeyCode.S)
             {
-                for (var i = 0; i < _nodes.Count; i++)
-                {
-                    _nodes[i].Drag(delta);
-                }
+                SaveChanges();
             }
+        }
 
+        private bool ProcessGroups(Event e)
+        {
             if (_groups != null)
             {
                 for (var i = 0; i < _groups.Count; i++)
                 {
-                    _groups[i].Drag(delta);
+                    var isChanged = _groups[i].ProcessEvents(e);
+                    if (isChanged)
+                    {
+                        return true;
+                    }
                 }
             }
 
+            return false;
+        }
+
+        private bool ProcessSideNotes(Event e)
+        {
+            if (_sideNodes != null)
+            {
+                for (var i = 0; i < _sideNodes.Count; i++)
+                {
+                    var isChanged = _sideNodes[i].ProcessEvents(e);
+                    if (isChanged)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private void ProcessDrag(Event e)
+        {
+            if (e.button != 0) return;
+            if (_groups != null)
+            {
+                for (var i = 0; i < _groups.Count; i++)
+                {
+                    _groups[i].Drag(e.delta);
+                }
+            }
+
+            _generalGroup?.Drag(e.delta);
+
+            _drag = e.delta;
+            e.Use();
             GUI.changed = true;
         }
 
-        private void OnDestroy()
-        {
-            OnClosed?.Invoke();
-        }
-
-        private void ProcessNodeEvents(Event e)
-        {
-            if (_nodes == null) return;
-            Node changed = null;
-            for (var i = _nodes.Count - 1; i >= 0; i--)
-            {
-                var guiChanged = _nodes[i].ProcessEvents(e);
-
-                if (guiChanged)
-                {
-                    changed = _nodes[i];
-                    GUI.changed = true;
-                    break;
-                }
-            }
-
-            if (changed == null) return;
-            _nodes.Remove(changed);
-            _nodes.Add(changed);
-        }
-
-        private void ProcessContextMenu(Vector2 mousePosition)
+        private void ProcessContextMenu(Event e)
         {
             var genericMenu = new GenericMenu();
             if (_menuList == null) return;
             for (var i = 0; i < _menuList.Length; i++)
             {
                 var menu = _menuList[i];
-                genericMenu.AddItem(new GUIContent($"Add {menu.Name.PrettyCamelCase()}"), false, () => OnClickAddNode(menu, mousePosition));
+                genericMenu.AddItem(new GUIContent($"Add {menu.Name.PrettyCamelCase()}"), false, () => OnClickAddNode(menu, e.mousePosition));
             }
 
+            e.Use();
             genericMenu.ShowAsContext();
         }
 
         public void SetInstancedList(IEnumerable<NodeItem> items)
         {
-            if (_nodes == null)
+            _generalGroup.SetNodeItems(items);
+        }
+
+        public void SetSideList(IEnumerable<NodeItem> items)
+        {
+            if (_sideNodes == null)
             {
-                _nodes = new List<Node>();
+                _sideNodes = new List<BaseNode>();
             }
 
-            foreach (var item in items)
+            foreach (var nodeItem in items)
             {
-                var node = new Node(item, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode);
-                _nodes.Add(node);
-                node.OnChanged += OnDataChanged;
+                var size = NodeStyles.DefaultSideSize * _sideNodes.Count;
+                var rect = new Rect(new Vector2(0, size.y), NodeStyles.DefaultSideSize);
+                nodeItem.SetRect(rect);
+                var node = new BaseNode(nodeItem, NodeStyles.SideBoxStyle, NodeStyles.SelectedSideBoxStyle);
+                SetUpSideNode(node);
+                _sideNodes.Add(node);
             }
         }
 
-        public void SetActions(Action<NodeItem> onCreate, Action<NodeItem> onRemove)
+        private void SetUpSideNode(BaseNode node)
+        {
+            node.OnRemoveNode += OnRemoveSideNode;
+            node.OnChanged += OnDataChanged;
+        }
+
+        public void SetActions(Action<object> onCreate, Action<object> onRemove)
         {
             _onRemove = onRemove;
             _onCreate = onCreate;
@@ -264,63 +287,91 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 _groups = new List<NodeGroup>();
             }
 
+            group.DataChanged += OnDataChanged;
+            group.OnRemove += OnRemove;
             _groups.Add(group);
+        }
+
+        private void OnRemove(NodeItem obj)
+        {
+            _onRemove?.Invoke(obj.InnerObject);
         }
 
         private void OnClickAddNode(Type nodeType, Vector2 mousePosition)
         {
-            if (_nodes == null)
-            {
-                _nodes = new List<Node>();
-            }
-
             var instance = Activator.CreateInstance(nodeType);
 
-            var rect = new Rect(mousePosition, DefaultSize);
-            NodeItem nodeItem;
             if (instance is INodeRect nodeRect)
             {
+                var rect = new Rect(mousePosition - _offset, NodeStyles.DefaultSize);
                 nodeRect.SetRect(rect);
-                nodeItem = new NodeItem(nodeRect);
+                var item = new Node(new NodeItem(nodeRect), NodeStyles.NodeStyle, NodeStyles.SelectedNodeStyle);
+                item.Drag(_offset);
+                var group = FindNodeGroup(mousePosition);
+                group.Attach(item);
             }
             else
             {
-                nodeItem = new NodeItem(instance, rect, null);
+                if (_sideNodes == null)
+                {
+                    _sideNodes = new List<BaseNode>();
+                }
+
+                var size = NodeStyles.DefaultSideSize * _sideNodes.Count;
+                var rect = new Rect(new Vector2(0, size.y), NodeStyles.DefaultSideSize);
+                var node = new BaseNode(new NodeItem(instance, rect, null), NodeStyles.SideBoxStyle, NodeStyles.SelectedSideBoxStyle);
+                SetUpSideNode(node);
+                _sideNodes.Add(node);
             }
 
-            _onCreate?.Invoke(nodeItem);
-            var item = new Node(nodeItem, _nodeStyle, _selectedNodeStyle, OnClickRemoveNode);
-            item.OnChanged += OnDataChanged;
-            _nodes.Add(item);
+            _onCreate?.Invoke(instance);
 
             OnDataChanged();
         }
 
-        private void OnClickRemoveNode(Node node)
+        private NodeGroup FindNodeGroup(Vector2 mousePosition)
         {
+            if (_groups == null)
+            {
+                return _generalGroup;
+            }
+
+            for (var i = 0; i < _groups.Count; i++)
+            {
+                var group = _groups[i];
+                if (group.Contains(mousePosition))
+                {
+                    return group;
+                }
+            }
+
+            return _generalGroup;
+        }
+
+        private void OnRemoveSideNode(BaseNode node)
+        {
+            node.OnRemoveNode -= OnRemoveSideNode;
             node.OnChanged -= OnDataChanged;
-            _onRemove?.Invoke(node.Object);
-            _nodes.Remove(node);
+            _sideNodes.Remove(node);
+
+            OnRemove(node.Object);
             OnDataChanged();
         }
 
         public void SetOffset(Vector2 offset)
         {
-            if (_nodes != null)
-            {
-                for (var i = 0; i < _nodes.Count; i++)
-                {
-                    _nodes[i].Drag(offset);
-                }
-            }
-
             if (_groups != null)
             {
                 for (var i = 0; i < _groups.Count; i++)
                 {
-                    _groups[i].Drag(offset);
+                    
                 }
             }
+        }
+
+        private void OnDestroy()
+        {
+            OnClosed?.Invoke();
         }
     }
 }

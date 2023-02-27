@@ -24,7 +24,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor.Models
             InnerObject = innerObject;
             if (position.Equals(Rect.zero))
             {
-                position = new Rect(Vector2.zero, NodeWindow.DefaultSize);
+                position = new Rect(Vector2.zero, NodeStyles.DefaultSize);
                 _rectChanged?.Invoke(position);
             }
 

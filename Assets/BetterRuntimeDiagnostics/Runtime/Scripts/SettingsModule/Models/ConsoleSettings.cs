@@ -1,5 +1,6 @@
 ﻿using System;
 using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
+using Better.Diagnostics.Runtime.InfoDisplayer.Models;
 using Better.Diagnostics.Runtime.SettingsModule.Interfaces;
 
 namespace Better.Diagnostics.Runtime.SettingsModule.Models
@@ -9,12 +10,12 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
     {
         public IDebugInfo GetInfo()
         {
-            throw new NotImplementedException();
+            return new DebugConsole();
         }
 
         public ISettings Copy()
         {
-            throw new NotImplementedException();
+            return new ConsoleSettings();
         }
     }
 }

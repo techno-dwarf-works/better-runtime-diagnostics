@@ -14,11 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultRenderColor: {r: 1, g: 0, b: 0, a: 1}
   settings:
-  - rid: 694170655043879165
+  - rid: 694170706354110500
+  - rid: 694170706354110501
+  - rid: 694170706354110502
   references:
     version: 2
     RefIds:
-    - rid: 694170655043879165
+    - rid: 694170706354110500
       type: {class: CPUUsageSetting, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
       data:
         position:
@@ -29,4 +31,19 @@ MonoBehaviour:
           height: 90
         cpuUpdateInterval:
           updateInterval: 0.5
-        prefab: {fileID: 0}
+    - rid: 694170706354110501
+      type: {class: RAMUsageSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position:
+          serializedVersion: 2
+          x: 11
+          y: 82.99997
+          width: 300
+          height: 72
+        ramUpdateInterval:
+          updateInterval: 0.5
+    - rid: 694170706354110502
+      type: {class: ConsoleSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        keyCodes: 
+        keyCode: 264

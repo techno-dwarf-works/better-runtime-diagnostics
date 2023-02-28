@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using Better.Extensions.Runtime;
 using UnityEditor;
@@ -13,6 +15,8 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         private readonly object _obj;
         private readonly bool _allowSceneObjects;
         private readonly Type _fieldType;
+        private int _listLines;
+        private bool _isList;
 
         public GUIContent FieldName { get; }
         public Vector2 Size { get; }
@@ -26,6 +30,12 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             Size = style.CalcSize(FieldName);
             _obj = obj;
             _allowSceneObjects = allowSceneObjects;
+
+            if (GetValue() is IList list)
+            {
+                _isList = true;
+                _listLines = list.Count + 2;
+            } 
         }
 
         public void SetValue(object value)
@@ -46,20 +56,49 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         public float GetHeight()
         {
             var textArea = GetCustomAttribute<TextAreaAttribute>();
+
+
             if (textArea != null)
             {
-                return EditorGUIUtility.singleLineHeight * textArea.maxLines;
+                return EditorGUIUtility.singleLineHeight * _listLines * textArea.maxLines;
             }
 
-            return EditorGUIUtility.singleLineHeight;
+            return EditorGUIUtility.singleLineHeight * _listLines;
         }
 
         public bool DrawField(Rect fieldRect)
         {
-            var value = GetValue();
+            (bool, object) t = new(false, null);
+            if (_isList)
+            {
+                var list = (IList)GetValue();
+                for (var index = 0; index < list.Count; index++)
+                {
+                    var value = list[index];
+                    var item = DrawFieldInternal(fieldRect, _fieldType.GenericTypeArguments[0], value);
+                    if (!item.Item1) continue;
+                    t = (true, list);
+                    list[index] = item.Item2;
+                }
+            }
+            else
+            {
+                t = DrawFieldInternal(fieldRect, _fieldType, GetValue());
+            }
+
+            if (t.Item1)
+            {
+                SetValue(t.Item2);
+            }
+
+            return t.Item1;
+        }
+
+        private (bool, object) DrawFieldInternal(Rect fieldRect, Type fieldType, object value)
+        {
             using (var check = new EditorGUI.ChangeCheckScope())
             {
-                if (_fieldType == typeof(int) && value.Cast<int>(out var intValue))
+                if (fieldType == typeof(int) && value.Cast<int>(out var intValue))
                 {
                     var t = EditorGUI.IntField(fieldRect, intValue);
                     if (check.changed)
@@ -67,7 +106,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                         value = Mathf.RoundToInt(ValidateMin(t));
                     }
                 }
-                else if (_fieldType == typeof(float) && value.Cast<float>(out var floatValue))
+                else if (fieldType == typeof(float) && value.Cast<float>(out var floatValue))
                 {
                     var range = GetCustomAttribute<RangeAttribute>();
                     var t = range == null ? EditorGUI.FloatField(fieldRect, floatValue) : EditorGUI.Slider(fieldRect, floatValue, range.min, range.max);
@@ -77,7 +116,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                         value = ValidateMin(t);
                     }
                 }
-                else if (_fieldType == typeof(string) && value.Cast<string>(out var stringValue))
+                else if (fieldType == typeof(string) && value.Cast<string>(out var stringValue))
                 {
                     var textArea = GetCustomAttribute<TextAreaAttribute>();
                     var t = textArea == null ? EditorGUI.TextField(fieldRect, stringValue) : EditorGUI.TextArea(fieldRect, stringValue);
@@ -87,7 +126,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                         value = t;
                     }
                 }
-                else if (_fieldType.IsSubclassOf(typeof(Object)) && value.Cast<Object>(out var obj))
+                else if (fieldType.IsSubclassOf(typeof(Object)) && value.Cast<Object>(out var obj))
                 {
                     var newObj = EditorGUI.ObjectField(fieldRect, obj, _fieldInfo.FieldType, _allowSceneObjects);
                     if (check.changed)
@@ -95,10 +134,17 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                         value = newObj;
                     }
                 }
+                else if (fieldType.IsSubclassOf(typeof(Enum)) && value.Cast<Enum>(out var eEnum))
+                {
+                    var flagsAttribute = GetCustomAttribute<FlagsAttribute>();
+                    var newValue = flagsAttribute == null ? EditorGUI.EnumPopup(fieldRect, eEnum) : EditorGUI.EnumFlagsField(fieldRect, eEnum);
+                    if (check.changed)
+                    {
+                        value = newValue;
+                    }
+                }
 
-                if (!check.changed) return false;
-                SetValue(value);
-                return true;
+                return check.changed ? (true, value) : (false, null);
             }
         }
 

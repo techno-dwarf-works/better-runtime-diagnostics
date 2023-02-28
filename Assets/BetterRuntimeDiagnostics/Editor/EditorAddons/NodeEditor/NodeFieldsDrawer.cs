@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -16,7 +17,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 
         private static readonly HashSet<Type> BaseTypes = new HashSet<Type>()
         {
-            typeof(int), typeof(float), typeof(string), typeof(Object)
+            typeof(int), typeof(float), typeof(string), typeof(Object), typeof(Enum), typeof(IList)
         };
 
         private FieldObject[] GetFields(Type type, object obj, bool allowSceneObjects)
@@ -25,7 +26,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             var t = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
                 .Where(x => x.GetCustomAttribute<SerializeField>() != null && x.FieldType != typeof(Rect)).ToArray();
 
-            var bases = t.Where(fieldInfo => BaseTypes.Any(baseType => baseType.IsAssignableFrom(fieldInfo.FieldType))).ToArray();
+            var bases = t.Where(fieldInfo => BaseTypes.Any(baseType => baseType.IsAssignableFrom(fieldInfo))).ToArray();
 
             var remaining = t.Except(bases);
 

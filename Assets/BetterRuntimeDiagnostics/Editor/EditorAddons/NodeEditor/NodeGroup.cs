@@ -77,6 +77,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 
         private bool ProcessNodeEvents(Event e)
         {
+            var isChanged = false;
             for (var i = _nodes.Count - 1; i >= 0; i--)
             {
                 var guiChanged = _nodes[i].ProcessEvents(e);
@@ -84,11 +85,11 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 if (guiChanged)
                 {
                     GUI.changed = true;
-                    return true;
+                    isChanged = true;
                 }
             }
 
-            return false;
+            return isChanged;
         }
 
         public void Draw()

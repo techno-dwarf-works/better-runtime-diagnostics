@@ -68,7 +68,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         {
             if (_lastWindowSize != position.size)
             {
-                _generalGroup.SetRect(new Rect(Vector2.zero, position.size));
+                _generalGroup?.SetRect(new Rect(Vector2.zero, position.size));
                 _lastWindowSize = position.size;
             }
 
@@ -358,13 +358,14 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             OnDataChanged();
         }
 
+        //TODO: Make offset works
         public void SetOffset(Vector2 offset)
         {
             if (_groups != null)
             {
                 for (var i = 0; i < _groups.Count; i++)
                 {
-                    
+                    _groups[i].Drag(offset);
                 }
             }
         }

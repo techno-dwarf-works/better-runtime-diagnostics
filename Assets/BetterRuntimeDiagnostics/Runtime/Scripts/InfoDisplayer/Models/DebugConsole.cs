@@ -42,6 +42,8 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 
             if (_codes.SetEquals(_currentKeys))
             {
+                _currentKeys.Clear();
+                e.Use();
                 Debug.Log("Triggered");
             }
         }

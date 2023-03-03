@@ -11,19 +11,17 @@ namespace Better.Diagnostics.Runtime.SettingsModule.Models
     public class ConsoleSettings : ISettings
     {
         [SerializeField] private List<KeyCode> keyCodes;
-        [SerializeField] private KeyCode keyCode;
 
         public IDebugInfo GetInfo()
         {
-            return new DebugConsole(new HashSet<KeyCode>());
+            return new DebugConsole(new HashSet<KeyCode>(keyCodes));
         }
 
         public ISettings Copy()
         {
             return new ConsoleSettings()
             {
-                keyCode = keyCode,
-                keyCodes = keyCodes
+                keyCodes = new List<KeyCode>(keyCodes)
             };
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
 using Better.Extensions.Runtime;
 using UnityEditor;
@@ -9,14 +8,36 @@ using Object = UnityEngine.Object;
 
 namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
+    public class BakedFieldData
+    {
+        public TextAreaAttribute TextAreaAttribute { get; }
+        public RangeAttribute RangeAttribute { get; }
+        public FlagsAttribute FlagsAttribute { get; }
+        public MinAttribute MinAttribute { get; }
+
+        public BakedFieldData(FieldInfo fieldInfo)
+        {
+            TextAreaAttribute = GetCustomAttribute<TextAreaAttribute>(fieldInfo);
+            RangeAttribute = GetCustomAttribute<RangeAttribute>(fieldInfo);
+            FlagsAttribute = GetCustomAttribute<FlagsAttribute>(fieldInfo);
+            MinAttribute = GetCustomAttribute<MinAttribute>(fieldInfo);
+        }
+
+        private T GetCustomAttribute<T>(FieldInfo fieldInfo) where T : Attribute
+        {
+            return fieldInfo.GetCustomAttribute<T>();
+        }
+    }
+
     public class FieldObject
     {
         private readonly FieldInfo _fieldInfo;
         private readonly object _obj;
         private readonly bool _allowSceneObjects;
         private readonly Type _fieldType;
-        private int _listLines;
-        private bool _isList;
+        private readonly bool _isList;
+
+        private readonly BakedFieldData _fieldData;
 
         public GUIContent FieldName { get; }
         public Vector2 Size { get; }
@@ -24,6 +45,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         public FieldObject(FieldInfo fieldInfo, object obj, bool allowSceneObjects)
         {
             _fieldInfo = fieldInfo;
+            _fieldData = new BakedFieldData(fieldInfo);
             _fieldType = fieldInfo.FieldType;
             FieldName = new GUIContent(_fieldInfo.Name.PrettyCamelCase());
             var style = EditorStyles.label;
@@ -31,67 +53,129 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             _obj = obj;
             _allowSceneObjects = allowSceneObjects;
 
-            if (GetValue() is IList list)
+            if (GetValue() is IList)
             {
                 _isList = true;
-                _listLines = list.Count + 2;
-            } 
+            }
         }
 
-        public void SetValue(object value)
+        private void SetValue(object value)
         {
             _fieldInfo.SetValue(_obj, value);
         }
 
-        public object GetValue()
+        private object GetValue()
         {
             return _fieldInfo.GetValue(_obj);
         }
 
-        public T GetCustomAttribute<T>() where T : Attribute
-        {
-            return _fieldInfo.GetCustomAttribute<T>();
-        }
-
         public float GetHeight()
         {
-            var textArea = GetCustomAttribute<TextAreaAttribute>();
+            var textArea = _fieldData.TextAreaAttribute;
 
+            float singleLine;
+
+            if (_isList)
+            {
+                var count = Count();
+                singleLine = NodeStyles.SingleLine * count + NodeStyles.SingleLine + NodeStyles.ListItemSpacing * (count - 1);
+            }
+            else
+            {
+                singleLine = NodeStyles.SingleLine;
+            }
 
             if (textArea != null)
             {
-                return EditorGUIUtility.singleLineHeight * _listLines * textArea.maxLines;
+                return singleLine * textArea.maxLines;
             }
 
-            return EditorGUIUtility.singleLineHeight * _listLines;
+            return singleLine;
+        }
+
+        public float GetExternalHeight()
+        {
+            return GetHeight() + (_isList ? NodeStyles.SingleLine / 2f : 0);
+        }
+
+        private int Count()
+        {
+            var count = ((IList)GetValue()).Count;
+            count = count == 0 ? 1 : count;
+            return count;
         }
 
         public bool DrawField(Rect fieldRect)
         {
-            (bool, object) t = new(false, null);
+            (bool, object) fieldInternal = new(false, null);
             if (_isList)
             {
                 var list = (IList)GetValue();
                 for (var index = 0; index < list.Count; index++)
                 {
                     var value = list[index];
-                    var item = DrawFieldInternal(fieldRect, _fieldType.GenericTypeArguments[0], value);
+                    if (index > 0)
+                    {
+                        fieldRect.position += Vector2.up * (NodeStyles.SingleLine + NodeStyles.ListItemSpacing);
+                    }
+
+                    var item = DrawFieldInternal(fieldRect, FieldTypeGenericTypeArgument(), value);
                     if (!item.Item1) continue;
-                    t = (true, list);
+                    fieldInternal = (true, list);
                     list[index] = item.Item2;
+                }
+
+                var isChanged = DrawListButtons(fieldRect);
+                if (isChanged)
+                {
+                    fieldInternal = new(true, list);
                 }
             }
             else
             {
-                t = DrawFieldInternal(fieldRect, _fieldType, GetValue());
+                fieldInternal = DrawFieldInternal(fieldRect, _fieldType, GetValue());
             }
 
-            if (t.Item1)
+            if (fieldInternal.Item1)
             {
-                SetValue(t.Item2);
+                SetValue(fieldInternal.Item2);
             }
 
-            return t.Item1;
+            return fieldInternal.Item1;
+        }
+
+        private bool DrawListButtons(Rect fieldRect)
+        {
+            var isChanged = false;
+            fieldRect.height = NodeStyles.SingleLine;
+            fieldRect.position += Vector2.up * (NodeStyles.SingleLine + NodeStyles.ListItemSpacing);
+            fieldRect.width /= 2f;
+            if (GUI.Button(fieldRect, "+"))
+            {
+                var list = (IList)GetValue();
+                if (list == null)
+                {
+                    list = (IList)Activator.CreateInstance(_fieldType);
+                    SetValue(list);
+                }
+
+                list.Add(FieldTypeGenericTypeArgument().GetDefaultValue());
+                isChanged = true;
+            }
+
+            fieldRect.position += Vector2.right * fieldRect.width;
+            if (GUI.Button(fieldRect, "-"))
+            {
+                var list = (IList)GetValue();
+                if (list.Count > 0)
+                {
+                    list.RemoveAt(list.Count - 1);
+                }
+
+                isChanged = true;
+            }
+
+            return isChanged;
         }
 
         private (bool, object) DrawFieldInternal(Rect fieldRect, Type fieldType, object value)
@@ -108,7 +192,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 }
                 else if (fieldType == typeof(float) && value.Cast<float>(out var floatValue))
                 {
-                    var range = GetCustomAttribute<RangeAttribute>();
+                    var range = _fieldData.RangeAttribute;
                     var t = range == null ? EditorGUI.FloatField(fieldRect, floatValue) : EditorGUI.Slider(fieldRect, floatValue, range.min, range.max);
 
                     if (check.changed)
@@ -118,8 +202,17 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 }
                 else if (fieldType == typeof(string) && value.Cast<string>(out var stringValue))
                 {
-                    var textArea = GetCustomAttribute<TextAreaAttribute>();
-                    var t = textArea == null ? EditorGUI.TextField(fieldRect, stringValue) : EditorGUI.TextArea(fieldRect, stringValue);
+                    var textArea = _fieldData.TextAreaAttribute;
+                    string t;
+                    if (textArea == null)
+                    {
+                        t = EditorGUI.TextField(fieldRect, stringValue);
+                    }
+                    else
+                    {
+                        fieldRect.height = textArea.maxLines;
+                        t = EditorGUI.TextArea(fieldRect, stringValue);
+                    }
 
                     if (check.changed)
                     {
@@ -128,7 +221,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 }
                 else if (fieldType.IsSubclassOf(typeof(Object)) && value.Cast<Object>(out var obj))
                 {
-                    var newObj = EditorGUI.ObjectField(fieldRect, obj, _fieldInfo.FieldType, _allowSceneObjects);
+                    var newObj = EditorGUI.ObjectField(fieldRect, obj, fieldType, _allowSceneObjects);
                     if (check.changed)
                     {
                         value = newObj;
@@ -136,7 +229,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 }
                 else if (fieldType.IsSubclassOf(typeof(Enum)) && value.Cast<Enum>(out var eEnum))
                 {
-                    var flagsAttribute = GetCustomAttribute<FlagsAttribute>();
+                    var flagsAttribute = _fieldData.FlagsAttribute;
                     var newValue = flagsAttribute == null ? EditorGUI.EnumPopup(fieldRect, eEnum) : EditorGUI.EnumFlagsField(fieldRect, eEnum);
                     if (check.changed)
                     {
@@ -148,10 +241,15 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             }
         }
 
+        private Type FieldTypeGenericTypeArgument()
+        {
+            return _fieldType.GenericTypeArguments[0];
+        }
+
 
         private float ValidateMin(float t)
         {
-            var attribute = GetCustomAttribute<MinAttribute>();
+            var attribute =_fieldData.MinAttribute;
             if (attribute != null)
                 t = Mathf.Max(attribute.min, t);
             return t;

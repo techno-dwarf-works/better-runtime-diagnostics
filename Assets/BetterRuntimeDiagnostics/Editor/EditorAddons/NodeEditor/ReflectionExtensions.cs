@@ -7,6 +7,14 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
     public  static class ReflectionExtensions
     {
+        public static object GetDefaultValue(this Type t)
+        {
+            if (t.IsValueType && Nullable.GetUnderlyingType(t) == null)
+                return Activator.CreateInstance(t);
+            else
+                return null;
+        }
+        
         public static bool IsGenericAssignableFrom(this Type baseType, FieldInfo fieldInfo)
         {
             var interfaceType = fieldInfo.FieldType;

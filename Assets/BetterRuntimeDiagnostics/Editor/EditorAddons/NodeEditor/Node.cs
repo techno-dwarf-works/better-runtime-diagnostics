@@ -9,7 +9,6 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         private Rect _relativeDrag;
         private bool _isDragged;
 
-        private GUIStyle _style;
         private float _resizeThickness = 10f;
         private NodeResizeDrawer _nodeResizeDrawer;
         private readonly GUIContent _content;
@@ -21,7 +20,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             rect.position += delta;
             _nodeItem.SetRect(rect);
             SetRect(rect);
-            OnDataChanged();
+            OnRectChanged();
         }
 
         private void ResizeInternal(Vector2 delta)
@@ -30,7 +29,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             _nodeResizeDrawer?.RestrictResize(ref baseRect, delta, GetHeight());
             _nodeItem.SetRect(baseRect);
             SetRect(baseRect);
-            OnDataChanged();
+            OnRectChanged();
         }
 
         public void Drag(Vector2 delta)
@@ -47,16 +46,17 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 var baseRect = base.AbsoluteRect();
                 _content.text = $"(x:{baseRect.x}, y:{baseRect.y})";
                 var size = EditorStyles.label.CalcSize(_content);
-                size.x += EditorGUIUtility.singleLineHeight;
+                size.x += NodeStyles.SingleLine;
                 var positionRect = new Rect(absoluteRect)
                 {
                     size = size
                 };
-                positionRect.position += Vector2.down * EditorGUIUtility.singleLineHeight;
+                positionRect.position += Vector2.down * NodeStyles.SingleLine;
                 GUI.Label(positionRect, _content);
             }
 
-            base.Draw();
+            GUI.Box(absoluteRect, _title, GetCurrentStyle());
+            _drawer.Draw(absoluteRect, GetCurrentStyle());
             
             _nodeResizeDrawer?.DrawCursor(absoluteRect);
         }
@@ -65,6 +65,15 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         {
             var rect = base.AbsoluteRect();
             return new Rect(rect.position + _relativeDrag.position, rect.size + _relativeDrag.size);
+        }
+
+        private protected override void ValidateRect()
+        {
+            var rect = base.AbsoluteRect();
+            var rectHeight = NodeStyles.MinSize.y + _drawer.GetHeight() - rect.height;
+            
+            rect.height += rectHeight > 0 ? rectHeight : 0;
+            SetRect(rect);
         }
 
         private protected override bool ProcessOthers(Event e, Rect absoluteRect, Vector2 mousePosition)

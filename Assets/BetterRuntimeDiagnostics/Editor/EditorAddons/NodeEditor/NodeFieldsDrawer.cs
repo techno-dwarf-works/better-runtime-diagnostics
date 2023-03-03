@@ -37,17 +37,15 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 
         public void Draw(Rect rect, GUIStyle nodeStyle)
         {
-            var singleLine = EditorGUIUtility.singleLineHeight;
-
             var labelRect = new Rect(rect);
-            labelRect.height = singleLine;
+            labelRect.height = NodeStyles.SingleLine;
 
             var stylePadding = nodeStyle.padding;
             var styleMargin = nodeStyle.margin;
             var left = stylePadding.left + styleMargin.left;
             var right = stylePadding.right + styleMargin.right;
-            var line = rect.size.x - singleLine - left - right;
-            labelRect.position += new Vector2(left, stylePadding.top + styleMargin.top + singleLine);
+            var line = rect.size.x - NodeStyles.SingleLine - left - right;
+            labelRect.position += new Vector2(left, stylePadding.top + styleMargin.top + NodeStyles.SingleLine);
             foreach (var fieldInfo in _fieldInfos)
             {
                 var fieldName = fieldInfo.FieldName;
@@ -56,16 +54,15 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
                 var size = fieldInfo.Size;
 
                 var fieldRect = new Rect(labelRect);
-                fieldRect.position += new Vector2(singleLine + size.x, 0);
+                fieldRect.position += new Vector2(NodeStyles.SingleLine + size.x, 0);
                 fieldRect.width = line - size.x;
 
-                var rectHeight = fieldInfo.GetHeight();
-                fieldRect.height = rectHeight;
                 var changed = fieldInfo.DrawField(fieldRect);
                 if (changed)
                     OnChanged?.Invoke();
 
-                labelRect.position += Vector2.up * (singleLine / 2f) + new Vector2(0, rectHeight);
+                var rectHeight = fieldInfo.GetHeight();
+                labelRect.position += Vector2.up * (NodeStyles.SingleLine / 2f) + new Vector2(0, rectHeight);
             }
         }
 
@@ -76,7 +73,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 
         public float GetHeight()
         {
-            var height = _fieldInfos.Sum(x => x.GetHeight());
+            var height = _fieldInfos.Sum(x => x.GetExternalHeight());
             return height;
         }
     }

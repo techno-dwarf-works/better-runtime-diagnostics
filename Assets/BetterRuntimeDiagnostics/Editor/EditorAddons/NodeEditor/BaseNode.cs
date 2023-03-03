@@ -8,7 +8,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
 {
     internal class BaseNode
     {
-        private readonly string _title;
+        private protected readonly string _title;
         private readonly GUIStyle _defaultNodeStyle;
         private readonly GUIStyle _selectedNodeStyle;
 
@@ -21,7 +21,7 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         private Rect _rect;
 
         private GUIStyle _style;
-        private readonly NodeFieldsDrawer _drawer;
+        private protected readonly NodeFieldsDrawer _drawer;
         private bool _onEdge;
         private protected bool _isSelected;
 
@@ -36,30 +36,45 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             _drawer = new NodeFieldsDrawer(type, nodeItem.InnerObject, false);
             _drawer.OnChanged += OnDataChanged;
             _rect = nodeItem.Position;
+            
             var rectHeight = _drawer.GetHeight();
             var isHeightValid = NodeStyles.MinSize.y + rectHeight <= _rect.height;
             if (!isHeightValid)
             {
                 _rect.height += rectHeight;
             }
-
+            
             _style = nodeStyle;
             _defaultNodeStyle = nodeStyle;
             _selectedNodeStyle = selectedStyle;
-            if (!isHeightValid)
-            {
-                OnDataChanged();
-            }
+        }
+        
+        private protected GUIStyle GetCurrentStyle()
+        {
+            return _style;
+        }
+        
+        private protected void OnDataChanged()
+        {
+            ValidateRect();
+            OnRectChanged();
         }
 
-        private protected void OnDataChanged()
+        private protected void OnRectChanged()
         {
             OnChanged?.Invoke();
         }
 
-        public virtual void SetRect(Rect rect)
+        public void SetRect(Rect rect)
         {
             _rect = rect;
+        }
+
+        private protected virtual void ValidateRect()
+        {
+            var heightDelta = NodeStyles.MinSize.y + _drawer.GetHeight() - _rect.height;
+            
+            _rect.height += heightDelta;
         }
 
         private protected virtual void ProcessContextMenu(Event e)
@@ -79,8 +94,9 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         public virtual void Draw()
         {
             var absoluteRect = AbsoluteRect();
-            GUI.Box(absoluteRect, _title, _style);
-            _drawer.Draw(absoluteRect, _style);
+
+            GUI.Box(absoluteRect, _title, GetCurrentStyle());
+            _drawer.Draw(absoluteRect, GetCurrentStyle());
         }
 
         public float GetHeight()

@@ -17,6 +17,8 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
         public static readonly Vector2 DefaultSideSize = new Vector2(200, EditorGUIUtility.singleLineHeight * 3f);
         public static readonly Vector2 MinSize = new Vector2(150, EditorGUIUtility.singleLineHeight * 3f);
         public static readonly Color32 BackgroundColor;
+        public static float SingleLine { get; } = EditorGUIUtility.singleLineHeight;
+        public static float ListItemSpacing { get; } = EditorGUIUtility.singleLineHeight / 4f;
 
         static NodeStyles()
         {
@@ -50,5 +52,6 @@ namespace Better.Diagnostics.EditorAddons.NodeEditor
             SelectedSideBoxStyle.border = new RectOffset(12, 12, 12, 12);
             SelectedSideBoxStyle.padding = new RectOffset(12, 12, 10, 10);
         }
+
     }
 }

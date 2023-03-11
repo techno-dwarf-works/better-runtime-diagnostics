@@ -2,7 +2,7 @@
   "name": "com.uurha.betterruntimediagnostics",
   "displayName": "Better Runtime Diagnostics",
   "version": "0.0.1",
-  "unity": "2018.3",
+  "unity": "2019.4",
   "description": " ",
   "dependencies": {
     "com.uurha.betterdatastructures": "0.0.4",

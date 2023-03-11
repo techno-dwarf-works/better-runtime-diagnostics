@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using Better.Diagnostics.Runtime.SettingsModule;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer
 {
+    [RequireComponent(typeof(UIDocument))]
     public class DebugUIManager : MonoBehaviour
     {
+        [SerializeField] private UIDocument document;
         private DiagnosticSettings _settings;
         private List<IDebugInfo> _list;
         private List<IUpdateableInfo> _updateableInfos;
@@ -21,7 +24,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer
             _fixedUpdateableInfos = new List<IFixedUpdateableInfo>();
             foreach (var debugInfo in _list)
             {
-                debugInfo.Initialize();
+                debugInfo.Initialize(document);
                 if (debugInfo is IUpdateableInfo updateableInfo)
                 {
                     _updateableInfos.Add(updateableInfo);
@@ -48,17 +51,6 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer
             {
                 updateableInfo.FixedUpdate();
             }
-        }
-
-        private void OnGUI()
-        {
-            GUILayout.BeginVertical();
-            foreach (var debugInfo in _list)
-            {
-                debugInfo.OnGUI();
-            }
-
-            GUILayout.EndVertical();
         }
 
         private void OnDestroy()

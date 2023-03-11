@@ -3,33 +3,27 @@ using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using Better.Diagnostics.Runtime.InfoDisplayer.Utils;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UIElements;
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class RenderingCounters : IDebugInfo, IUpdateableInfo
     {
-        private readonly Rect _position;
-        private readonly GUIContent _content;
         private int _vertexCount;
         private int _subMeshCount;
         private int _triangleCount;
         private Camera _mainCamera;
         private readonly UpdateTimer _updateTimer;
+        private readonly Label _label;
 
         public RenderingCounters(Rect position, UpdateInterval updateInterval)
         {
-            _position = position;
+            _label = VisualElementsFactory.CreateElement<Label>(position, Color.white);
             _updateTimer = new UpdateTimer(updateInterval, OnUpdate);
-            _content = new GUIContent();
         }
 
-        public void Initialize()
+        public void Initialize(UIDocument uiDocument)
         {
-        }
-
-        public void OnGUI()
-        {
-            GUI.Label(_position, _content);
         }
 
         public void Deconstruct()
@@ -57,7 +51,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
             str.AppendLine($"vertex " + _vertexCount);
             str.AppendLine($"triangle " + _triangleCount);
             str.AppendLine($"sub meshes " + _subMeshCount);
-            _content.text = str.ToString();
+            _label.text = str.ToString();
         }
 
         public void Update()

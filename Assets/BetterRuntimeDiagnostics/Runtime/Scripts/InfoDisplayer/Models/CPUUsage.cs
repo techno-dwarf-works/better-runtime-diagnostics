@@ -2,34 +2,37 @@
 using System.Diagnostics;
 using System.Threading;
 using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
+using Better.Diagnostics.Runtime.InfoDisplayer.Utils;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 //TODO: Implement own process get https://answers.unity.com/questions/1792187/systemdiagnosticsprocessgetprocesses-is-not-workin.html
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
-    public class CPUUsage : IDebugInfo
+    public class CPUUsage : IDebugInfo, IUpdateableInfo
     {
         private int _processorCount;
         private float _cpuTime;
 
         private Thread _cpuThread;
         private float _lasCpuUsage;
-        private readonly Rect _position;
         private readonly UpdateInterval _updateInterval;
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly GUIContent _content;
+        private readonly Label _label;
+        private readonly UpdateTimer _updateTimer;
 
         public CPUUsage(Rect position, UpdateInterval updateInterval)
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            _position = position;
             _updateInterval = updateInterval;
-            _content = new GUIContent();
+            _updateTimer = new UpdateTimer(updateInterval.Interval + 0.1f, OnUpdate);
+            _label = VisualElementsFactory.CreateElement<Label>(position, Color.white);
         }
 
-        public void Initialize()
+        public void Initialize(UIDocument uiDocument)
         {
+            uiDocument.rootVisualElement.Add(_label);
             _processorCount = Environment.ProcessorCount;
             _cpuThread = new Thread(UpdateCPUUsage)
             {
@@ -43,10 +46,9 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
             _cpuThread.Start(_cancellationTokenSource.Token);
         }
 
-        public void OnGUI()
+        private void OnUpdate()
         {
-            _content.text = _cpuTime.ToString("F1") + "ms";
-            GUI.Label(_position, _content);
+            _label.text = _cpuTime.ToString("F1") + "ms";
         }
 
         public void Deconstruct()
@@ -55,7 +57,12 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
             _cancellationTokenSource.Cancel(false);
             _cpuThread?.Abort();
         }
-        
+
+        public void Update()
+        {
+            _updateTimer?.Update();
+        }
+
         /// <summary>
         /// Runs in Thread
         /// </summary>

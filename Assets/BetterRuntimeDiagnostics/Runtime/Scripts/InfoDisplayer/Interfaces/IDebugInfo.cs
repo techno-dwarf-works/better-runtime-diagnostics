@@ -1,19 +1,10 @@
-﻿namespace Better.Diagnostics.Runtime.InfoDisplayer.Interfaces
+﻿using UnityEngine.UIElements;
+
+namespace Better.Diagnostics.Runtime.InfoDisplayer.Interfaces
 {
     public interface IDebugInfo
     {
-        public void Initialize();
-        public void OnGUI();
+        public void Initialize(UIDocument uiDocument);
         public void Deconstruct();
-    }
-
-    public interface IUpdateableInfo
-    {
-        public void Update();
-    }
-    
-    public interface IFixedUpdateableInfo
-    {
-        public void FixedUpdate();
     }
 }

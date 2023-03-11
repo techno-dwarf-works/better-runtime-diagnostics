@@ -42,7 +42,10 @@ namespace Better.Diagnostics.EditorAddons
             _settings.SetInstances(settings.GetInstances());
             instance.SetActions(OnCreate, OnRemove);
             instance.SetMenuList(LazyGetAllInheritedType(typeof(ISettings)));
-            _screenGroup = new NodeGroup("Screen Group",new Rect(0, 0, Screen.width, Screen.height), NodeStyles.BoxStyle);
+            
+            var dpi = Screen.dpi / 100f;
+            var size = new Vector2(Screen.width, Screen.height);
+            _screenGroup = new NodeGroup("Screen Group",new Rect(Vector2.zero, size / dpi), NodeStyles.BoxStyle);
             var items = GetItems();
             _screenGroup.SetNodeItems(items.Item1);
             instance.SetSideList(items.Item2);

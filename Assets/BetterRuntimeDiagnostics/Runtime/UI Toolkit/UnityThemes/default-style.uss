@@ -1,0 +1,48 @@
+.header {
+    padding-bottom: 5px;
+    font-size: 14px;
+    -unity-font-style: bold;
+    color: rgb(255, 255, 255);
+}
+
+.inner-item {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.tag-item {
+    background-color: rgb(38, 38, 38);
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    -unity-text-align: middle-center;
+    border-left-color: rgb(67, 67, 67);
+    border-right-color: rgb(67, 67, 67);
+    border-top-color: rgb(67, 67, 67);
+    border-bottom-color: rgb(67, 67, 67);
+    height: auto;
+    max-height: 30px;
+    align-items: center;
+    justify-content: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.body {
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    min-height: 150px;
+    background-color: rgba(0, 0, 0, 0);
+    max-height: 78%;
+}
+
+.tag-item:focus {
+    background-color: rgb(100, 100, 100);
+}

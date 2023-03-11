@@ -1,4 +1,5 @@
 using System.Text;
+using Better.Diagnostics.Runtime.InfoDisplayer.Utils;
 using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer.Models

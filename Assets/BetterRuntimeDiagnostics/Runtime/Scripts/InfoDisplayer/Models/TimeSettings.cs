@@ -1,38 +1,64 @@
-﻿using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
+﻿using System;
+using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
-    public class TimeSettings : IDebugInfo
+    public class TimeSettings : IDebugInfo, IUpdateableInfo
     {
-        private readonly Rect _position;
-        private readonly GUIContent _content;
-        private readonly GUIContent _label;
+        private readonly Label _label;
+        private readonly Slider _slider;
+        private readonly VisualElement _panel;
+        private float _currentTimeScale;
 
         public TimeSettings(Rect position)
         {
-            _position = position;
-            _content = new GUIContent();
-            _label = new GUIContent("Time scale:");
+            _panel = VisualElementsFactory.CreateElement<VisualElement>(position, Color.white);
+            _panel.style.display = new StyleEnum<DisplayStyle>(DisplayStyle.Flex);
+            _panel.style.flexDirection = new StyleEnum<FlexDirection>(FlexDirection.Column);
+            _panel.style.alignContent = new StyleEnum<Align>(Align.FlexStart);
+            _panel.style.alignItems = new StyleEnum<Align>(Align.FlexStart);
+            _label = VisualElementsFactory.CreateElement<Label>(Color.white);
+            
+            SetCurrentScale(Time.timeScale);
+            _panel.Add(_label);
+            
+            _slider = VisualElementsFactory.CreateElement<Slider>(Color.white);
+            _slider.highValue = 1f;
+            _slider.lowValue = 0f;
+            _slider.value = _currentTimeScale;
+            _slider.RegisterValueChangedCallback(OnChanged);
+            _panel.Add(_slider);
+            
         }
 
-        public void Initialize()
+        private void SetCurrentScale(float currentTimeScale)
         {
+            _currentTimeScale = currentTimeScale;
+            _label.text = $"Time scale: {currentTimeScale}";
         }
 
-        public void OnGUI()
+        private void OnChanged(ChangeEvent<float> eventData)
         {
-            var size = GUI.skin.label.CalcSize(_label);
-            GUI.Label(_position, _label);
+            var timeScale = eventData.newValue;
+            Time.timeScale = timeScale;
+            SetCurrentScale(timeScale);
+        }
 
-            var timeScale = Time.timeScale;
-            _content.text = timeScale.ToString("F");
-            var rect = new Rect(new Vector2(_position.x + size.x + 9f, _position.y), size);
-            GUI.Label(rect, _content);
+        public void Initialize(UIDocument uiDocument)
+        {
+            uiDocument.rootVisualElement.Add(_panel);
+        }
 
-            var sliderRect = new Rect(new Vector2(_position.x, _position.y + size.y + 9f), size);
-            Time.timeScale = GUI.HorizontalSlider(sliderRect, timeScale, 0, 1);
+        public void Update()
+        {
+            if (Math.Abs(_currentTimeScale - Time.timeScale) > float.Epsilon)
+            {
+                SetCurrentScale(Time.timeScale);
+                _slider.SetValueWithoutNotify(_currentTimeScale);
+            }
         }
 
         public void Deconstruct()

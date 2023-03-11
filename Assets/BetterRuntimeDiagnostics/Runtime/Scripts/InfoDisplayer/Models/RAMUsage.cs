@@ -3,30 +3,25 @@ using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using Better.Diagnostics.Runtime.InfoDisplayer.Utils;
 using Better.Extensions.Runtime;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class RAMUsage : IDebugInfo, IUpdateableInfo
     {
-        private readonly Rect _position;
         private long _usedTotalMemory;
-        private readonly GUIContent _totalContent;
         private readonly UpdateTimer _updateTimer;
+        private readonly Label _label;
 
         public RAMUsage(Rect position, UpdateInterval updateInterval)
         {
-            _position = position;
+            _label = VisualElementsFactory.CreateElement<Label>(position, Color.white);
             _updateTimer = new UpdateTimer(updateInterval, OnUpdate);
-            _totalContent = new GUIContent();
         }
 
-        public void Initialize()
+        public void Initialize(UIDocument uiDocument)
         {
-        }
-
-        public void OnGUI()
-        {
-            GUI.Label(_position, _totalContent);
+            uiDocument.rootVisualElement.Add(_label);
         }
 
         public void Deconstruct()
@@ -41,7 +36,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
         private void OnUpdate()
         {
             _usedTotalMemory = GC.GetTotalMemory(false);
-            _totalContent.text = _usedTotalMemory.ToMegabytes().ToString("F1") + " mb";
+            _label.text = _usedTotalMemory.ToMegabytes().ToString("F1") + " mb";
         }
     }
 }

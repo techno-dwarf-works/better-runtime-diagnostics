@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
+namespace Better.Diagnostics.Runtime.InfoDisplayer.Utils
 {
     [Serializable]
     public class UpdateInterval

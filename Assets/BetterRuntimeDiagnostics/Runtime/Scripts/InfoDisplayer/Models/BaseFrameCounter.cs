@@ -1,27 +1,27 @@
 ﻿using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using Better.Diagnostics.Runtime.InfoDisplayer.Utils;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public abstract class BaseFrameCounter : IDebugInfo, IUpdateableInfo
     {
-        private readonly Rect _position;
         private float _deltaTime;
         private float _lastFPS;
-        private readonly GUIContent _content;
         private float _nextUpdate;
         private readonly UpdateTimer _updateTimer;
+        private readonly Label _label;
 
         public BaseFrameCounter(Rect position, UpdateInterval updateInterval)
         {
-            _position = position;
+            _label = VisualElementsFactory.CreateElement<Label>(position, Color.white);
             _updateTimer = new UpdateTimer(updateInterval, OnUpdate);
-            _content = new GUIContent();
         }
 
-        public virtual void Initialize()
+        public virtual void Initialize(UIDocument uiDocument)
         {
+            uiDocument.rootVisualElement.Add(_label);
         }
 
         public virtual void Update()
@@ -32,17 +32,12 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
         private void OnUpdate()
         {
             _lastFPS = DisplayFPS();
-            _content.text = ContentText(_lastFPS);
+            _label.text = ContentText(_lastFPS);
         }
 
         private protected abstract string ContentText(float fps);
 
         private protected abstract float DisplayFPS();
-
-        public virtual void OnGUI()
-        {
-            GUI.Label(_position, _content);
-        }
 
         public virtual void Deconstruct()
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
 using Better.Diagnostics.Runtime.InfoDisplayer.Models;
+using Better.Diagnostics.Runtime.InfoDisplayer.Utils;
 using Better.Diagnostics.Runtime.SettingsModule.Interfaces;
 using UnityEngine;
 

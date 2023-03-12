@@ -1,19 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using Better.Diagnostics.Runtime.CommandConsoleModule;
 using Better.Diagnostics.Runtime.InfoDisplayer.Interfaces;
-using Better.Extensions.Runtime;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Better.Diagnostics.Runtime.InfoDisplayer.DebugConsoleModule
+namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
     public class Test1
     {
-        [ConsoleCommand("better", "run")]
+        [ConsoleCommand(CommandDefinition.DefaultCommandPrefix, "run")]
         private static int Test(int value)
         {
-            return value + 32;
+            return value * value;
         }
     }
 
@@ -60,10 +58,13 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.DebugConsoleModule
         private void OnCommandChanged(ChangeEvent<string> evt)
         {
             var result = CommandRegistry.RunCommand(evt.newValue);
-            var label = VisualElementsFactory.CreateElement<Label>(Color.white);
-            label.style.whiteSpace = new StyleEnum<WhiteSpace>(WhiteSpace.Normal);
-            label.text = result.Item2;
-            _scrollView.Add(label);
+            foreach (var valueTuple in result)
+            {
+                var label = VisualElementsFactory.CreateElement<Label>(Color.white);
+                label.style.whiteSpace = new StyleEnum<WhiteSpace>(WhiteSpace.Normal);
+                label.text = valueTuple.Item2;
+                _scrollView.Add(label);
+            }
         }
 
         public void Initialize(UIDocument uiDocument)

@@ -41,12 +41,7 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
             var length = inputString.IndexOf(' ');
             length = length < 0 ? inputString.Length : length;
             var command = inputString.Substring(0, length);
-            if (!command.StartsWith(CommandDefinition.CommandInputPrefix))
-            {
-                return (false, $"Command should start with {CommandDefinition.CommandInputPrefix.ToString()}");
-            }
 
-            command = command.TrimStart('-');
             var parametersString = inputString.Remove(0, length);
             var parameters = parametersString.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
@@ -57,7 +52,7 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
         {
             if (_staticMethods.TryGetValue(command, out var methodInfo))
             {
-                var commands = parameters.Select(x => new Command(x)).ToArray();
+                var commands = parameters.Select(x => new CommandParameter(x)).ToArray();
 
                 var infos = methodInfo.GetParameters();
                 if (commands.Any())

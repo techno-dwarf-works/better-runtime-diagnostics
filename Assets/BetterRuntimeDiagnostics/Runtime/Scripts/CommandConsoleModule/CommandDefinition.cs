@@ -7,8 +7,10 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
     public static class CommandDefinition
     {
         public const string DefaultCommandPrefix = "better";
-        internal const char CommandInputPrefix = '-';
+        internal const string CommandInputPrefix = "-";
         internal const string DoubleCommandInputPrefix = "--";
+        internal const string PipeCommand = "|>";
+        internal const char TypeSplitCommand = ':';
         internal const string HelpCommand = DoubleCommandInputPrefix + "help";
 
         private static Dictionary<string, Type> _typeMap;
@@ -32,10 +34,10 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
         }
 
         //TODO add construct IConvertable
-        public static void AddType(string stringType, Type type)
+        public static void AddType<T>(string stringType) where T : IConvertible
         {
             if (_typeMap.ContainsKey(stringType))
-                _typeMap.Add(stringType, type);
+                _typeMap.Add(stringType, typeof(T));
         }
 
         public static bool TryParse(string stringValue, out object value, out Type objectType)

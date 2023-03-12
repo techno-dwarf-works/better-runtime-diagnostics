@@ -5,22 +5,22 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.CommandConsoleModule
 {
-    public class Command
+    public class CommandParameter
     {
-        private Type _type;
-        private object _value;
-        
+        private readonly Type _type;
+        private readonly object _value;
+
         public Type Type => _type;
         public object Value => _value;
 
         public bool IsValid { get; }
         public bool IsHelpCommand { get; }
 
-        public Command(string command)
+        public CommandParameter(string command)
         {
-            if (command.Contains(':'))
+            if (command.Contains(CommandDefinition.TypeSplitCommand))
             {
-                var split = command.Split(':', StringSplitOptions.RemoveEmptyEntries);
+                var split = command.Split(CommandDefinition.TypeSplitCommand, StringSplitOptions.RemoveEmptyEntries);
                 var typeString = split[0];
                 var valueString = split[1];
 

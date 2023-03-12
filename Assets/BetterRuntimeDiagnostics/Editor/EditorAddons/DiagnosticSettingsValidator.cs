@@ -9,7 +9,6 @@ using Better.Diagnostics.Runtime.SettingsModule;
 using Better.Diagnostics.Runtime.SettingsModule.Interfaces;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using Object = UnityEngine.Object;
 
 namespace Better.Diagnostics.EditorAddons

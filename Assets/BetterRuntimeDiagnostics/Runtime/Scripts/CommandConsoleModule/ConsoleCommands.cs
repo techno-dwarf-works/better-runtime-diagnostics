@@ -3,39 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Better.Extensions.Runtime;
 
 namespace Better.Diagnostics.Runtime.CommandConsoleModule
 {
     public class ConsoleCommands
     {
-        private readonly Dictionary<string, MethodInfo> _staticMethods;
+        private readonly Dictionary<string, MethodData> _staticMethods;
 
-        private readonly string _commandPrefix;
 
-        internal string CommandPrefix => _commandPrefix;
-
-        public ConsoleCommands(string commandPrefix)
+        public ConsoleCommands(Dictionary<string, MethodData> methodDatas)
         {
-            _commandPrefix = commandPrefix;
-            _staticMethods = new Dictionary<string, MethodInfo>();
-            var types = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes().SelectMany(type =>
-                    type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public).Where(info => info.IsStatic)));
-            foreach (var methodInfo in types)
-            {
-                var command = methodInfo.GetCustomAttribute<ConsoleCommandAttribute>();
-                if (command != null && command.IsValid && command.Prefix.FastEquals(commandPrefix))
-                {
-                    _staticMethods.Add(command.Command, methodInfo);
-                }
-            }
+            _staticMethods = methodDatas;
         }
 
-        //TODO: Add pipe better -run 10 |> -run2 -homeRun true
-        //TODO: -first |> -second == send return value from -first to second
-
-        public (bool, string) Run(string inputString)
+        internal (bool, string) Run(string inputString)
         {
             inputString = inputString.Trim();
             var length = inputString.IndexOf(' ');
@@ -55,54 +36,94 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
                 var commands = parameters.Select(x => new CommandParameter(x)).ToArray();
 
                 var infos = methodInfo.GetParameters();
-                if (commands.Any())
-                {
-                    var first = commands.First();
-                    if (first.IsValid && first.IsHelpCommand)
-                    {
-                        var str = new StringBuilder($"{command} has parameters:");
-                        foreach (var parameterInfo in infos)
-                        {
-                            str.Append($" {parameterInfo.ParameterType}:{parameterInfo.Name}");
-                        }
-
-                        return (true, str.ToString());
-                    }
-                }
+                if (CheckHelpCommand(command, commands, infos, out var valueTuple)) return valueTuple;
 
                 if (infos.Length != commands.Length)
                 {
                     return (false, $"\"{command}\" has {infos.Length} parameters");
                 }
 
-                if (!infos.Select(x => x.ParameterType).SequenceEqual(commands.Select(x => x.Type)))
-                {
-                    var str = new StringBuilder("Parameters of command is:");
-                    foreach (var info in infos)
-                    {
-                        str.Append($" {info.ParameterType}");
-                    }
-
-                    str.Append(" but invoked with:");
-                    
-                    foreach (var info in commands)
-                    {
-                        str.Append($" {info.Type}");
-                    }
-                    
-                    return (false, str.ToString());
-                }
+                if (CheckForParams(infos, commands, out var runCommand)) return runCommand;
 
                 if (!commands.All(x => x.IsValid))
                 {
-                    return (false, $"Some command is not valid");
+                    return (false, $"Some parameter is not valid");
                 }
 
-                var result = methodInfo.Invoke(null, commands.Select(x => x.Value).ToArray());
+                var result = methodInfo.Invoke(commands.Select(x => x.Value).ToArray());
                 return result == null ? (true, null) : (true, result.ToString());
             }
 
             return (false, "Command not found");
+        }
+
+        private static bool CheckForParams(ParameterInfo[] infos, CommandParameter[] commands, out (bool, string) runCommand)
+        {
+            if (!infos.Select(x => x.ParameterType).SequenceEqual(commands.Select(x => x.Type)))
+            {
+                var str = new StringBuilder("Parameters of command is:");
+                foreach (var info in infos)
+                {
+                    str.Append($" {info.ParameterType}");
+                }
+
+                str.Append(" but invoked with:");
+
+                foreach (var info in commands)
+                {
+                    str.Append($" {info.Type}");
+                }
+
+                runCommand = (false, str.ToString());
+                return true;
+            }
+
+            runCommand = (false, null);
+            return false;
+        }
+
+        private static bool CheckHelpCommand(string command, CommandParameter[] commands, ParameterInfo[] infos, out (bool, string) valueTuple)
+        {
+            if (commands.Any())
+            {
+                var first = commands.First();
+                if (first.IsValid && first.IsHelpCommand)
+                {
+                    var str = new StringBuilder($"{command} has parameters:");
+                    foreach (var parameterInfo in infos)
+                    {
+                        str.Append($" {parameterInfo.ParameterType}:{parameterInfo.Name}");
+                    }
+
+                    {
+                        valueTuple = (true, str.ToString());
+                        return true;
+                    }
+                }
+            }
+
+            valueTuple = (false, null);
+            return false;
+        }
+
+        public void JoinCommands(ConsoleCommands commands)
+        {
+            foreach (var staticMethod in commands._staticMethods)
+            {
+                _staticMethods.Add(staticMethod.Key, staticMethod.Value);
+            }
+        }
+
+        public void SubtractCommands(ConsoleCommands commands)
+        {
+            foreach (var staticMethod in commands._staticMethods)
+            {
+                if (_staticMethods.TryGetValue(staticMethod.Key, out var command))
+                {
+                    if (command.Equal(staticMethod.Value))
+                        _staticMethods.Remove(staticMethod.Key);
+                }
+            }
         }
     }
 }

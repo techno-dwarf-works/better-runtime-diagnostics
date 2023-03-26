@@ -13,38 +13,38 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
         internal const char TypeSplitCommand = ':';
         internal const string HelpCommand = DoubleCommandInputPrefix + "help";
 
-        private static Dictionary<string, Type> _typeMap;
+        private static readonly Dictionary<string, Type> TypeMap;
 
         static CommandDefinition()
         {
-            _typeMap = new Dictionary<string, Type>();
-            _typeMap.Add("int", typeof(int));
-            _typeMap.Add("uint", typeof(uint));
-            _typeMap.Add("long", typeof(long));
-            _typeMap.Add("ulong", typeof(ulong));
-            _typeMap.Add("short", typeof(short));
-            _typeMap.Add("ushort", typeof(ushort));
-            _typeMap.Add("float", typeof(float));
-            _typeMap.Add("double", typeof(double));
-            _typeMap.Add("decimal", typeof(decimal));
-            _typeMap.Add("bool", typeof(bool));
-            _typeMap.Add("char", typeof(char));
-            _typeMap.Add("byte", typeof(byte));
-            _typeMap.Add("date", typeof(DateTime));
+            TypeMap = new Dictionary<string, Type>();
+            TypeMap.Add("int", typeof(int));
+            TypeMap.Add("uint", typeof(uint));
+            TypeMap.Add("long", typeof(long));
+            TypeMap.Add("ulong", typeof(ulong));
+            TypeMap.Add("short", typeof(short));
+            TypeMap.Add("ushort", typeof(ushort));
+            TypeMap.Add("float", typeof(float));
+            TypeMap.Add("double", typeof(double));
+            TypeMap.Add("decimal", typeof(decimal));
+            TypeMap.Add("bool", typeof(bool));
+            TypeMap.Add("char", typeof(char));
+            TypeMap.Add("byte", typeof(byte));
+            TypeMap.Add("date", typeof(DateTime));
         }
 
         //TODO add construct IConvertable
         public static void AddType<T>(string stringType) where T : IConvertible
         {
-            if (_typeMap.ContainsKey(stringType))
-                _typeMap.Add(stringType, typeof(T));
+            if (TypeMap.ContainsKey(stringType))
+                TypeMap.Add(stringType, typeof(T));
         }
 
-        public static bool TryParse(string stringValue, out object value, out Type objectType)
+        internal static bool TryParse(string stringValue, out object value, out Type objectType)
         {
             value = null;
             objectType = null;
-            foreach (var type in _typeMap.Values)
+            foreach (var type in TypeMap.Values)
             {
                 var converter = TypeDescriptor.GetConverter(type);
                 if (!converter.IsValid(stringValue)) continue;
@@ -56,9 +56,9 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
             return false;
         }
 
-        public static bool TryGetType(string stringType, out Type type)
+        internal static bool TryGetType(string stringType, out Type type)
         {
-            return _typeMap.TryGetValue(stringType, out type);
+            return TypeMap.TryGetValue(stringType, out type);
         }
     }
 }

@@ -4,7 +4,7 @@ using Better.Diagnostics.Runtime.DrawingModule.Interfaces;
 
 namespace Better.Diagnostics.Runtime.DrawingModule
 {
-    public class RemovablePool
+    internal class RemovablePool
     {
         private Dictionary<Type, List<IRemovable>> _dictionary;
 
@@ -15,7 +15,7 @@ namespace Better.Diagnostics.Runtime.DrawingModule
             _dictionary = new Dictionary<Type, List<IRemovable>>();
         }
 
-        public static RemovablePool Instance
+        internal static RemovablePool Instance
         {
             get
             {

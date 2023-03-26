@@ -7,7 +7,7 @@ using UnityEngine.Rendering;
 
 namespace Better.Diagnostics.Runtime.DrawingModule.Framing
 {
-    internal static class FrameListener
+    public static class FrameListener
     {
         private static RenderStrategy _renderStrategy;
 

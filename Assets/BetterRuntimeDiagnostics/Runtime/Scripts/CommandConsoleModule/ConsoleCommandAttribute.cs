@@ -6,10 +6,10 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class ConsoleCommandAttribute : Attribute
     {
-        public bool IsValid { get; } = false;
+        internal bool IsValid { get; } = false;
 
-        public string Command { get; }
-        public string Prefix { get; }
+        internal string Command { get; }
+        internal string Prefix { get; }
 
         public ConsoleCommandAttribute(string prefix, string command)
         {
@@ -24,7 +24,7 @@ namespace Better.Diagnostics.Runtime.CommandConsoleModule
             Command = command;
         }
 
-        internal ConsoleCommandAttribute(string command) : this(CommandDefinition.DefaultCommandPrefix, command)
+        public ConsoleCommandAttribute(string command) : this(CommandDefinition.DefaultCommandPrefix, command)
         {
         }
     }

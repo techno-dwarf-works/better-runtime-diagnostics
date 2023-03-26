@@ -5,18 +5,18 @@ using UnityEngine;
 
 namespace Better.Diagnostics.Runtime.CommandConsoleModule
 {
-    public class CommandParameter
+    internal class CommandParameter
     {
         private readonly Type _type;
         private readonly object _value;
 
-        public Type Type => _type;
-        public object Value => _value;
+        internal Type Type => _type;
+        internal object Value => _value;
 
-        public bool IsValid { get; }
-        public bool IsHelpCommand { get; }
+        internal bool IsValid { get; }
+        internal bool IsHelpCommand { get; }
 
-        public CommandParameter(string command)
+        internal CommandParameter(string command)
         {
             if (command.Contains(CommandDefinition.TypeSplitCommand))
             {

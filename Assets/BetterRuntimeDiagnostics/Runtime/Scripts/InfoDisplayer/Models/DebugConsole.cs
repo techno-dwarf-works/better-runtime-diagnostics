@@ -6,15 +6,6 @@ using UnityEngine.UIElements;
 
 namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 {
-    public class Test1
-    {
-        [ConsoleCommand(CommandDefinition.DefaultCommandPrefix, "run")]
-        private static int Test(int value)
-        {
-            return value * value;
-        }
-    }
-
     [Serializable]
     public class DebugConsole : IDebugInfo, IUpdateableInfo
     {
@@ -24,8 +15,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
         private readonly VisualElement _panel;
         private readonly ScrollView _scrollView;
         private readonly TextField _inputField;
-
-
+        
         public DebugConsole(KeyCode code)
         {
             _code = code;
@@ -69,8 +59,7 @@ namespace Better.Diagnostics.Runtime.InfoDisplayer.Models
 
         public void Initialize(UIDocument uiDocument)
         {
-            var defaultConsoleCommands = new ConsoleCommands(CommandDefinition.DefaultCommandPrefix);
-            CommandRegistry.AddRegistry(defaultConsoleCommands);
+            CommandRegistry.RegisterStatics(CommandDefinition.DefaultCommandPrefix);
             uiDocument.rootVisualElement.Add(_panel);
         }
 

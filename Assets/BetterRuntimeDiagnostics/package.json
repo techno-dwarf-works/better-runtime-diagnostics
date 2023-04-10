@@ -5,9 +5,7 @@
   "unity": "2019.4",
   "description": " ",
   "dependencies": {
-    "com.uurha.betterdatastructures": "0.0.4",
-    "com.uurha.betterextensions": "0.3.0",
-    "com.uurha.bettereditortools": "0.0.4"
+    "com.uurha.bettereditortools": "0.3.1"
   },
   "author": {
     "name": "Arcueid D'athemon",

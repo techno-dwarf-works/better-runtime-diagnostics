@@ -14,15 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultRenderColor: {r: 1, g: 0, b: 0, a: 1}
   settings:
-  - rid: 6540379148293242910
-  - rid: 6540379148293242911
-  - rid: 6540379148293242912
-  - rid: 6540379148293242913
-  - rid: 6540379148293242914
+  - rid: 1658768450550235147
+  - rid: 1658768450550235148
+  - rid: 1658768450550235149
+  - rid: 1658768450550235150
+  - rid: 1658768450550235151
+  - rid: 1658768450550235152
   references:
     version: 2
     RefIds:
-    - rid: 6540379148293242910
+    - rid: 1658768450550235147
       type: {class: CPUUsageSetting, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
       data:
         position:
@@ -33,37 +34,48 @@ MonoBehaviour:
           height: 78
         cpuUpdateInterval:
           updateInterval: 1
-    - rid: 6540379148293242911
-      type: {class: ConsoleSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
-      data:
-        keyCode: 96
-    - rid: 6540379148293242912
+    - rid: 1658768450550235148
       type: {class: TimeScaleSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
       data:
         position:
           serializedVersion: 2
-          x: 362
-          y: 0.9999924
+          x: 671
+          y: 3.9999924
           width: 213
           height: 54
-    - rid: 6540379148293242913
+    - rid: 1658768450550235149
       type: {class: RenderingCountersSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
       data:
         position:
           serializedVersion: 2
-          x: 30
-          y: 296
+          x: -2
+          y: 71
           width: 300
           height: 72
         renderingUpdateInterval:
           updateInterval: 0.5
-    - rid: 6540379148293242914
+    - rid: 1658768450550235150
       type: {class: FixedUpdateTrackerSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
       data:
         position:
           serializedVersion: 2
-          x: 392
-          y: 87.999985
+          x: 665
+          y: 115.999985
           width: 205
           height: 72
         trackerSize: 5
+    - rid: 1658768450550235151
+      type: {class: ScaledFPSSetting, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        position:
+          serializedVersion: 2
+          x: -2
+          y: 139
+          width: 300
+          height: 72
+        fpsUpdateInterval:
+          updateInterval: 1
+    - rid: 1658768450550235152
+      type: {class: ConsoleSettings, ns: Better.Diagnostics.Runtime.SettingsModule.Models, asm: BetterRuntimeDiagnostics.Runtime}
+      data:
+        keyCode: 96

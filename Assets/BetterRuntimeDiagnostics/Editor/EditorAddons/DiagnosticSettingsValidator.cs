@@ -10,41 +10,34 @@ using Better.Diagnostics.Runtime.SettingsModule.Interfaces;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
+using ReflectionExtensions = Better.Extensions.Runtime.ReflectionExtensions;
 
 namespace Better.Diagnostics.EditorAddons
 {
     [InitializeOnLoad]
     public static class DiagnosticSettingsValidator
     {
-        private static string[] _folderPaths = new string[]
-            { nameof(Better), nameof(Diagnostics), "Resources" };
-
         private static NodeGroup _screenGroup;
         private static DiagnosticSettings _settings;
 
-        private static string GenerateRelativePath()
-        {
-            return Path.Combine(_folderPaths);
-        }
-
         static DiagnosticSettingsValidator()
         {
-            LoadOrCreateSettings();
+            BetterInternalTools.LoadOrCreateScriptableObject<DiagnosticSettings>();
         }
 
-        [MenuItem("Better/Diagnostics/Settings")]
+        [MenuItem(BetterInternalTools.MenuItemPrefix + "/Settings")]
         private static void HighlightSettings()
         {
             var instance = NodeWindow.OpenWindow();
-            var settings = LoadOrCreateSettings();
+            var settings = BetterInternalTools.LoadOrCreateScriptableObject<DiagnosticSettings>();
             _settings = ScriptableObject.CreateInstance<DiagnosticSettings>();
             _settings.SetInstances(settings.GetInstances());
             instance.SetActions(OnCreate, OnRemove);
-            instance.SetMenuList(LazyGetAllInheritedType(typeof(ISettings)));
-            
+            instance.SetMenuList(ReflectionExtensions.GetAllInheritedType(typeof(ISettings)));
+
             var dpi = Screen.dpi / 100f;
             var size = new Vector2(Screen.width, Screen.height);
-            _screenGroup = new NodeGroup("Screen Group",new Rect(Vector2.zero, size / dpi), NodeStyles.BoxStyle);
+            _screenGroup = new NodeGroup("Screen Group", new Rect(Vector2.zero, size / dpi), NodeStyles.BoxStyle);
             var items = GetItems();
             _screenGroup.SetNodeItems(items.Item1);
             instance.SetSideList(items.Item2);
@@ -99,30 +92,12 @@ namespace Better.Diagnostics.EditorAddons
             if (_settings == null) return;
             if (EditorUtility.IsDirty(_settings))
             {
-                var settings = LoadOrCreateSettings();
+                var settings = BetterInternalTools.LoadOrCreateScriptableObject<DiagnosticSettings>();
                 settings.SetInstances(_settings.GetInstances());
 
                 EditorUtility.SetDirty(settings);
                 AssetDatabase.SaveAssetIfDirty(settings);
             }
-        }
-
-        private static Type[] LazyGetAllInheritedType(Type baseType)
-        {
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes()).Where(p => ArgIsValueType(baseType, p)).ToArray();
-        }
-
-        private static bool ArgIsValueType(Type baseType, Type iterateValue)
-        {
-            return CheckType(baseType, iterateValue) &&
-                   (iterateValue.IsClass || iterateValue.IsValueType) &&
-                   !iterateValue.IsAbstract && !iterateValue.IsSubclassOf(typeof(Object));
-        }
-
-        private static bool CheckType(Type baseType, Type p)
-        {
-            return baseType.IsAssignableFrom(p);
         }
 
         private static void OnRemove(object obj)
@@ -139,26 +114,6 @@ namespace Better.Diagnostics.EditorAddons
             {
                 _settings.Add(settings);
             }
-        }
-
-        private static DiagnosticSettings LoadOrCreateSettings()
-        {
-            var settings = Resources.Load<DiagnosticSettings>(nameof(DiagnosticSettings));
-            if (settings != null) return settings;
-
-            settings = ScriptableObject.CreateInstance<DiagnosticSettings>();
-
-            var relativePath = GenerateRelativePath();
-            var absolutePath = Path.Combine(Application.dataPath, relativePath);
-
-            if (!Directory.Exists(absolutePath))
-            {
-                Directory.CreateDirectory(absolutePath);
-            }
-
-            relativePath = Path.Combine("Assets", relativePath, $"{nameof(DiagnosticSettings)}.asset");
-            AssetDatabase.CreateAsset(settings, relativePath);
-            return settings;
         }
     }
 }
